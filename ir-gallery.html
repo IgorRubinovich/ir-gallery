@@ -1,0 +1,485 @@
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../rv-iscroll/rv-iscroll.html">
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../iron-media-query/iron-media-query.html">
+
+<dom-module id="ir-gallery">
+  
+    <template>
+
+        <style>
+
+        #gallery {
+            max-width : 1024px;
+        }
+
+        #gallery-scroller {
+            width : 976px;
+            height : 730px;
+        }     
+
+        .scroller-image {
+            max-width : 976px;
+            width : 976px; 
+            max-height: 730px;
+            height : auto;
+        }
+
+        #gallery-scroller[ss] {
+                width : 576px;
+                height : 380px;
+            } 
+
+        .scroller-image[ss] {
+          max-width : 576px;
+          width : 576px; 
+          max-height: 380px;
+          height : auto;
+        }
+
+        #inline-scroller {
+            max-width: 667px;
+            width : 667px;
+            height : 500px;
+        }
+
+        .scroller-image[inline-style] {
+            max-width : 667px;
+            width : 667px;
+            max-height: 500px;
+            height : auto;
+        }
+
+        #inline-thumbnails {
+            max-width: 667px;
+            width : 667px!important;
+            height : 62px;
+            padding-top : 10px;
+        }
+
+        #gallery-thumbnails {
+            max-width : 976px;
+            width : 976px!important;
+            height : 72px;
+            padding-top : 10px;
+        }
+
+        .scroller-items {
+            display: -webkit-box;
+            display : flex;
+
+            -webkit-flex-direction: row;
+            flex-direction : row;
+
+            align-items: center;
+            text-align: center;
+        }
+
+        .scroller-item {
+            -webkit-flex-basis:667px;
+            flex-basis  : 667px;
+            min-width : 667px;
+            margin-right : 10px;
+            position: relative;
+        }
+
+        .scroller-item[gallery-style] {
+            -webkit-flex-basis:976px;
+            flex-basis  : 976px;
+            min-width : 976px;
+            margin-right : 10px;
+            position: relative;
+        }
+
+        .thumbnail-items {
+            display: -webkit-box;
+            display : flex;
+
+            -webkit-flex-direction: row;
+            flex-direction : row;
+        }
+
+        .thumbnail-item {
+            height : 62px;
+            -webkit-flex-basis: auto;
+            flex-basis  : auto;
+            min-width : 60px;
+            margin-right : 10px;
+            position: relative;
+        }
+
+        img.selected {
+            display: block;
+            content: " ";
+            border-left: 16px solid transparent;
+            border-right: 16px solid transparent;
+        }
+
+        .caption {
+            display: block;
+            clear: left;
+            text-align: center;
+            font-size: 13px;
+            color: #56646f;
+            line-height: 1.4em;
+            margin: 0 auto;
+            background-color: #F2F2F2;
+        }
+
+        #navigationButtons {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        </style>
+
+        <iron-media-query query="(max-width: 600px)" query-matches="{{ss}}"></iron-media-query>
+          
+        <span on-click="showGallery" hidden$="{{ !showDefaultImages }}">
+            <content></content>
+        </span>
+        
+        <paper-dialog id="onePictureDialog">
+          <img src="{{ imgSrc }}" class="scroller-image">
+        </paper-dialog>
+
+        <div hidden$="{{ !inlineMode }}">
+
+          <rv-iscroll id="inline-scroller" scroll-x iscroll-snap=".scroller-item" ss$="{{ss}}">
+            <div class="scroller-items">
+              <template id="template" is="dom-repeat" items="{{ images }}">
+                <div class="scroller-item">
+                  <img src="{{ item.image }}" inline-style$="{{ inlineMode }}" ss$="{{ss}}" class="scroller-image" on-click="showGallery">
+                  <p class="caption">{{ item.caption }}</p>
+                </div>
+              </template>
+            </div>
+          </rv-iscroll>
+
+          <div id="navigationButtons">
+            <paper-icon-button icon="arrow-back" on-click="prev"></paper-icon-button>
+            <paper-icon-button icon="arrow-forward" on-click="next"></paper-icon-button>
+          </div>
+
+          <rv-iscroll id="inline-thumbnails" scroll-x iscroll-snap=".thumbnail-item">
+            <div class="thumbnail-items">
+                <template id="template" is="dom-repeat" items="{{ images }}">
+                  <div class="thumbnail-item">
+                    <paper-material elevation="0">
+                      <img src="{{ item.image }}" style="width : auto; height : 62px; padding: 2px 0;" data-iscroll-page$="{{ index }}">
+                    <paper-material>
+                  </div>
+                </template>
+            </div>
+          </rv-iscroll>
+
+        </div>
+
+        <paper-dialog id="gallery">
+          <div>
+
+            <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item" ss$="{{ss}}">
+              <div class="scroller-items" gallery-style$="{{ galleryMode }}">
+                <template id="template" is="dom-repeat" items="{{ images }}">
+                  <div class="scroller-item" gallery-style$="{{ galleryMode }}">
+                    <img src="{{ item.image }}" ss$="{{ss}}" class="scroller-image">
+                    <p class="caption">{{ item.caption }}</p>
+                  </div>
+                </template>
+              </div>
+            </rv-iscroll>
+            
+            <div id="navigationButtons">
+              <paper-icon-button icon="arrow-back" on-click="gPrev"></paper-icon-button>
+              <paper-icon-button icon="arrow-forward" on-click="gNext"></paper-icon-button>
+            </div>
+
+            <rv-iscroll id="gallery-thumbnails" scroll-x iscroll-snap=".thumbnail-item">
+              <div class="thumbnail-items">
+                  <template id="template" is="dom-repeat" items="{{ images }}">
+                    <div class="thumbnail-item">
+                      <paper-material elevation="0">
+                        <img src="{{ item.image }}" style="width : auto; height : 62px; padding: 2px 0;" data-iscroll-page$="{{ index }}">
+                      </paper-material>
+                    </div>
+                  </template>
+              </div>
+            </rv-iscroll>  
+
+          </div>
+        </paper-dialog>
+                
+    </template>
+
+    <script>
+        Polymer({
+            is : 'ir-gallery',
+
+            properties : {
+                images  : { type : Array, value : [] },
+                imgSrc : { type : String },
+                showDefaultImages : { type : Boolean, value : false },
+                onePictureMode : { type : Boolean, value : false },
+                inlineMode : { type : Boolean, value : false },
+                galleryMode : { type : Boolean, value : false }    
+            },
+
+
+            ready : function() {
+                var images = Polymer.dom(this).querySelectorAll('img'),
+                    captions = Polymer.dom(this).querySelectorAll('p'),
+                    arr = [];
+
+                for(var i = 0; i < images.length; i++)
+                {
+                    arr[i] = { 'image' : images[i].src, 'caption' : '' };
+                }
+
+                for(var j = 0; j < captions.length; j++)
+                {
+                  if(captions[j].parentNode.querySelector('img'))
+                    for(var k = 0; k < images.length; k++)
+                      if(arr[k].image == captions[j].parentNode.querySelector('img').src)
+                        arr[k].caption = captions[j].innerHTML; 
+                }
+
+                this.images = arr;
+
+                if((this.images.length == 1) && !this.onePictureMode)
+                {
+                  this.onePictureMode = true;
+                  this.showDefaultImages = true;
+                }
+
+                if(this.galleryMode)
+                  this.showDefaultImages = true;
+
+                if(!this.inlineMode && !this.galleryMode && !this.onePictureMode)
+                {
+                  this.inlineMode = true;
+                  this.galleryMode = true;
+                }
+
+                if(this.inlineMode)
+                {
+                  setTimeout(function() {
+                    //document.getElementById('inline-thumbnails').scroll.refresh();
+                    this.setUpScroller('inline-scroller', 'inline-thumbnails');
+                    //this.thumbnailsScroller('inline-thumbnails');
+                  }.bind(this), 200)
+                }  
+            },
+
+            showGallery : function(e) {
+                //this.images = Polymer.dom(this).querySelectorAll('img');
+                var targetImg = e.target.src,
+                        i;
+
+                if(this.onePictureMode)
+                {
+                  this.imgSrc = targetImg;
+                  this.$.onePictureDialog.open();
+                }
+                else
+                  if(this.galleryMode)
+                  {
+                    this.$.gallery.open();
+
+                    setTimeout(function () {
+                        this.$["gallery-scroller"].scroll.refresh();
+                        this.$["gallery-thumbnails"].scroll.refresh();
+                    }.bind(this), 200); 
+
+                    this.setUpScroller('gallery-scroller', 'gallery-thumbnails');
+                    this.thumbnailsScroller('gallery-thumbnails');
+                  }
+            },
+
+            swapImage : function(e) {
+                this.set('imgSrc', e.target.src);
+            },
+
+            setUpScroller : function(scrollerSelector, thumbnails)
+            {
+
+              var el = this.$[scrollerSelector],
+                iscroll,  thumbnails, autoScroll, currentPage;
+
+              if(!el)
+                return;
+              var that = this;
+
+              if(!el.scroll)
+              {
+                setTimeout(function() {
+                    that.setUpScroller(scrollerSelector, thumbnails);
+                },
+                1000);
+                return;
+              }
+
+              iscroll = el.scroll,
+              thumbnails = this.$[thumbnails],
+              autoScroll = true,
+              currentPage = 0;
+              iscroll._init();
+
+              if(!el || !thumbnails || !thumbnails.childNodes)
+                return;
+
+              var goToPage = function(i) {
+                currentPage = i;
+
+                if(typeof currentPage == 'undefined')
+                  currentPage = iscroll.pages.pageX;
+
+                iscroll.goToPage(i, 0);
+              }
+
+              var selectThumbnail = function(i) {
+                var next = (typeof i != "undefined") ? i : (iscroll.currentPage.pageX || 0);
+                
+                [].forEach.call(thumbnails.getElementsByTagName('img'), function(el) {
+                    if(el.classList.contains('selected'))
+                    {
+                      el.classList.remove('selected');
+                      el.parentNode.elevation = 0;
+                    }
+                });
+
+                if(!thumbnails.getElementsByTagName('img')[next])
+                  return;
+                
+                thumbnails.getElementsByTagName('img')[next].classList.add('selected');
+                thumbnails.getElementsByTagName('img')[next].parentNode.elevation = 5;
+
+              }
+
+              selectThumbnail(0);
+
+              //  return;
+              setInterval(function() {
+                if(el.isReady && autoScroll)
+                {
+                  if(currentPage++ >= iscroll.pages.length)
+                    currentPage = 0;
+
+                  goToPage(currentPage);
+                  selectThumbnail(currentPage);
+                }
+              }, 4000);
+
+              el.addEventListener('click', function(e) {
+                selectThumbnail();
+                autoScroll = false;
+              });
+              
+              iscroll.on("scrollEnd", function( event ) {
+                selectThumbnail();
+              }, false);
+
+              iscroll.on("flick", function() {
+                autoScroll = false;
+              });
+
+              thumbnails.addEventListener('click', function(e) {
+                if(e.srcElement.hasAttribute('data-iscroll-page'))
+                {
+                  var page = e.srcElement.getAttribute('data-iscroll-page');
+                  goToPage(page);
+                  selectThumbnail(page);
+                  autoScroll = false;
+                }
+              });
+
+              inlineScroller = this.$['inline-scroller'];
+
+              inlineScroller.addEventListener('click', function(e) {
+                var j = 0;
+                while(e.srcElement.src != thumbnails.querySelectorAll('img')[j].src)
+                    j++;
+                var nPage = thumbnails.querySelectorAll('img')[j].getAttribute('data-iscroll-page');  
+                goToPage(nPage);
+                selectThumbnail(nPage);
+                autoScroll = false;  
+              });
+
+              this.thumbnailsScroller('gallery-thumbnails');
+              
+            },
+
+            thumbnailsScroller : function(scrollerId) {
+              var el = this.$[scrollerId],
+                iscroll;
+
+              if(!el)
+                return;
+              
+              iscroll = el.scroll;
+
+              iscroll._init();
+
+            },
+
+            prev : function() {
+              var el = this.$['inline-thumbnails'],
+                  iscroll;
+
+              if(!el)
+                return;
+              
+              iscroll = el.scroll;
+               if(!iscroll) iscroll = el.scroll;
+                  el.scroll.prev();
+
+
+                
+            },
+
+            next : function() {
+              var el = this.$['inline-thumbnails'],
+                  iscroll;
+
+
+              if(!el)
+                return;
+
+              if(!iscroll) iscroll = el.scroll;
+                  el.scroll.next();
+              
+            },
+
+            gPrev : function() {
+              var el = this.$['gallery-thumbnails'],
+                  iscroll;
+
+              if(!el)
+                return;
+              
+              iscroll = el.scroll;
+               if(!iscroll) iscroll = el.scroll;
+                  el.scroll.prev();
+
+
+                
+            },
+
+            gNext : function() {
+              var el = this.$['gallery-thumbnails'],
+                  iscroll;
+
+
+              if(!el)
+                return;
+
+              if(!iscroll) iscroll = el.scroll;
+                  el.scroll.next();
+              
+            }
+
+
+        })
+    </script>
+</dom-module>
+
