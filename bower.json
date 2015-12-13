@@ -1,0 +1,24 @@
+{
+  "name": "ir-gallery",
+  "version": "0.1.0",
+  "authors": [
+    "Igor Rubinovich <igor.rubinovih@gmail.com>"
+  ],
+  "description": "gallery web component",
+  "main": "ir-gallery.html",
+  "license": "BSD",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "paper-dialog": "PolymerElements/paper-dialog#~1.0.1",
+    "paper-material": "PolymerElements/paper-material#^1.0.2",
+    "paper-icon-button": "PolymerElements/paper-icon-button#^1.0.4",
+    "rv-iscroll": "https://github.com/IgorRubinovich/rv-iscroll.git#07a2b93fd65a6e292c946e0b864724c5815e95fe",
+    "iron-media-query": "PolymerElements/iron-media-query#^1.0.2"
+  }
+}
