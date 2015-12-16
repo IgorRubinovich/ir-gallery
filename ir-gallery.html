@@ -19,22 +19,46 @@
             height : 730px;
         }     
 
+        #gallery-scroller[ss] {
+            width : 500px;
+            height : 380px;
+        } 
+
+        #gallery-scroller[ms] {
+            width : 700px;
+            height : 580px;
+        } 
+
+        #gallery-scroller[hs] {
+            width : 976px;
+            height : 700px;
+        } 
+
         .scroller-image {
             max-width : 976px;
-            width : 976px; 
+            width : auto; 
             max-height: 730px;
             height : auto;
         }
 
-        #gallery-scroller[ss] {
-                width : 576px;
-                height : 380px;
-            } 
-
         .scroller-image[ss] {
-          max-width : 576px;
-          width : 576px; 
+          max-width : 500px!important;
+          width : auto; 
           max-height: 380px;
+          height : auto;
+        }
+
+        .scroller-image[ms] {
+          max-width : 700px!important;
+          width : auto; 
+          max-height: 580px;
+          height : auto;
+        }   
+
+        .scroller-image[hs] {
+          max-width : 976px!important;
+          width : auto; 
+          max-height: 700px;
           height : auto;
         }
 
@@ -46,7 +70,7 @@
 
         .scroller-image[inline-style] {
             max-width : 667px;
-            width : 667px;
+            width : auto;
             max-height: 500px;
             height : auto;
         }
@@ -54,11 +78,32 @@
         #inline-thumbnails {
             max-width: 667px;
             width : 667px!important;
-            height : 62px;
+            height : 72px;
             padding-top : 10px;
         }
 
         #gallery-thumbnails {
+            max-width : 976px;
+            width : 976px!important;
+            height : 72px;
+            padding-top : 10px;
+        }
+
+        #gallery-thumbnails[ss] {
+            max-width : 500px;
+            width : 500px!important;
+            height : 72px;
+            padding-top : 10px;
+        }
+
+         #gallery-thumbnails[ms] {
+            max-width : 700px;
+            width : 700px!important;
+            height : 72px;
+            padding-top : 10px;
+        }
+
+         #gallery-thumbnails[hs] {
             max-width : 976px;
             width : 976px!important;
             height : 72px;
@@ -76,7 +121,7 @@
             text-align: center;
         }
 
-        .scroller-item {
+        .inline-item {
             -webkit-flex-basis:667px;
             flex-basis  : 667px;
             min-width : 667px;
@@ -84,7 +129,31 @@
             position: relative;
         }
 
-        .scroller-item[gallery-style] {
+        .scroller-item {
+            -webkit-flex-basis:976px;
+            flex-basis  : 976px;
+            min-width : 976px;
+            margin-right : 10px;
+            position: relative;
+        }
+
+        .scroller-item[ss] {
+            -webkit-flex-basis:500px;
+            flex-basis  : 500px;
+            min-width : 500px;
+            margin-right : 10px;
+            position: relative;
+        }
+
+        .scroller-item[ms] {
+            -webkit-flex-basis:700px;
+            flex-basis  : 700px;
+            min-width : 700px;
+            margin-right : 10px;
+            position: relative;
+        }
+
+        .scroller-item[hs] {
             -webkit-flex-basis:976px;
             flex-basis  : 976px;
             min-width : 976px;
@@ -135,6 +204,8 @@
         </style>
 
         <iron-media-query query="(max-width: 600px)" query-matches="{{ss}}"></iron-media-query>
+        <iron-media-query query="(min-width: 600px) and (max-width: 900px)" query-matches="{{ms}}"></iron-media-query>
+        <iron-media-query query="(min-width: 1200px)" query-matches="{{hs}}"></iron-media-query>
           
         <span on-click="showGallery" hidden$="{{ !showDefaultImages }}">
             <content></content>
@@ -142,14 +213,15 @@
         
         <paper-dialog id="onePictureDialog">
           <img src="{{ imgSrc }}" class="scroller-image">
+          <p class="caption">{{ imgCaption }}</p>
         </paper-dialog>
 
         <div hidden$="{{ !inlineMode }}">
 
-          <rv-iscroll id="inline-scroller" scroll-x iscroll-snap=".scroller-item" ss$="{{ss}}">
+          <rv-iscroll id="inline-scroller" scroll-x iscroll-snap=".inline-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}">
             <div class="scroller-items">
               <template id="template" is="dom-repeat" items="{{ images }}">
-                <div class="scroller-item">
+                <div class="inline-item">
                   <img src="{{ item.image }}" inline-style$="{{ inlineMode }}" ss$="{{ss}}" class="scroller-image" on-click="showGallery">
                   <p class="caption">{{ item.caption }}</p>
                 </div>
@@ -176,14 +248,14 @@
 
         </div>
 
-        <paper-dialog id="gallery">
+        <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller">
           <div>
 
-            <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item" ss$="{{ss}}">
-              <div class="scroller-items" gallery-style$="{{ galleryMode }}">
+            <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}">
+              <div class="scroller-items">
                 <template id="template" is="dom-repeat" items="{{ images }}">
-                  <div class="scroller-item" gallery-style$="{{ galleryMode }}">
-                    <img src="{{ item.image }}" ss$="{{ss}}" class="scroller-image">
+                  <div class="scroller-item"  ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" >
+                    <img src="{{ item.image }}" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" class="scroller-image">
                     <p class="caption">{{ item.caption }}</p>
                   </div>
                 </template>
@@ -195,7 +267,7 @@
               <paper-icon-button icon="arrow-forward" on-click="gNext"></paper-icon-button>
             </div>
 
-            <rv-iscroll id="gallery-thumbnails" scroll-x iscroll-snap=".thumbnail-item">
+            <rv-iscroll id="gallery-thumbnails" scroll-x iscroll-snap=".thumbnail-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}">
               <div class="thumbnail-items">
                   <template id="template" is="dom-repeat" items="{{ images }}">
                     <div class="thumbnail-item">
@@ -219,10 +291,12 @@
             properties : {
                 images  : { type : Array, value : [] },
                 imgSrc : { type : String },
+                imgCaption : { type : String },
                 showDefaultImages : { type : Boolean, value : false },
                 onePictureMode : { type : Boolean, value : false },
                 inlineMode : { type : Boolean, value : false },
-                galleryMode : { type : Boolean, value : false }    
+                galleryMode : { type : Boolean, value : false },
+                pageToSwap : { type : Number, value : 0 }    
             },
 
 
@@ -264,9 +338,9 @@
                 if(this.inlineMode)
                 {
                   setTimeout(function() {
-                    //document.getElementById('inline-thumbnails').scroll.refresh();
+
                     this.setUpScroller('inline-scroller', 'inline-thumbnails');
-                    //this.thumbnailsScroller('inline-thumbnails');
+
                   }.bind(this), 200)
                 }  
             },
@@ -274,11 +348,14 @@
             showGallery : function(e) {
                 //this.images = Polymer.dom(this).querySelectorAll('img');
                 var targetImg = e.target.src,
-                        i;
+                    i;
 
                 if(this.onePictureMode)
                 {
                   this.imgSrc = targetImg;
+                  if(Polymer.dom(this).querySelector('p'))
+                    this.imgCaption = Polymer.dom(this).querySelector('p').innerHTML;
+
                   this.$.onePictureDialog.open();
                 }
                 else
@@ -286,14 +363,27 @@
                   {
                     this.$.gallery.open();
 
+                    this.$['inline-scroller'].scroll.destroy();
+                    this.$['inline-thumbnails'].scroll.destroy();
+
                     setTimeout(function () {
                         this.$["gallery-scroller"].scroll.refresh();
                         this.$["gallery-thumbnails"].scroll.refresh();
                     }.bind(this), 200); 
 
                     this.setUpScroller('gallery-scroller', 'gallery-thumbnails');
-                    this.thumbnailsScroller('gallery-thumbnails');
+
                   }
+            },
+
+            destroyScroller : function(){
+
+                this.$["gallery-scroller"].scroll.destroy();
+                this.$["gallery-thumbnails"].scroll.destroy();
+
+                this.$['inline-scroller'].scroll._init();
+                this.$['inline-thumbnails'].scroll._init();
+
             },
 
             swapImage : function(e) {
@@ -303,181 +393,172 @@
             setUpScroller : function(scrollerSelector, thumbnails)
             {
 
-              var el = this.$[scrollerSelector],
-                iscroll,  thumbnails, autoScroll, currentPage;
+                var el = this.$[scrollerSelector],
+                  iscroll,  thumbnails, autoScroll, currentPage;
 
-              if(!el)
-                return;
-              var that = this;
+                if(!el)
+                  return;
+                var that = this;
 
-              if(!el.scroll)
-              {
-                setTimeout(function() {
-                    that.setUpScroller(scrollerSelector, thumbnails);
-                },
-                1000);
-                return;
-              }
+                if(!el.scroll)
+                {
+                  setTimeout(function() {
+                      that.setUpScroller(scrollerSelector, thumbnails);
+                  },
+                  1000);
+                  return;
+                }
 
-              iscroll = el.scroll,
-              thumbnails = this.$[thumbnails],
-              autoScroll = true,
-              currentPage = 0;
-              iscroll._init();
+                iscroll = el.scroll,
+                thumbnails = this.$[thumbnails],
+                autoScroll = true,
+                currentPage = 0;
+                iscroll._init();
 
-              if(!el || !thumbnails || !thumbnails.childNodes)
-                return;
+                if(!el || !thumbnails || !thumbnails.childNodes)
+                  return;
 
-              var goToPage = function(i) {
-                currentPage = i;
+                var goToPage = function(i) {
+                  currentPage = i;
 
-                if(typeof currentPage == 'undefined')
-                  currentPage = iscroll.pages.pageX;
+                  if(typeof currentPage == 'undefined')
+                    currentPage = iscroll.pages.pageX;
 
-                iscroll.goToPage(i, 0);
-              }
+                  iscroll.goToPage(i, 0);
+                }
 
-              var selectThumbnail = function(i) {
-                var next = (typeof i != "undefined") ? i : (iscroll.currentPage.pageX || 0);
+                var selectThumbnail = function(i) {
+                  var next = (typeof i != "undefined") ? i : (iscroll.currentPage.pageX || 0);
+                  
+                  [].forEach.call(thumbnails.getElementsByTagName('img'), function(el) {
+                      if(el.classList.contains('selected'))
+                      {
+                        el.classList.remove('selected');
+                        el.parentNode.elevation = 0;
+                      }
+                  });
+
+                  if(!thumbnails.getElementsByTagName('img')[next])
+                    return;
+                  
+                  thumbnails.getElementsByTagName('img')[next].classList.add('selected');
+                  thumbnails.getElementsByTagName('img')[next].parentNode.elevation = 5;
+
+                }
+
+                selectThumbnail(0);
+
+                //  return;
+                setInterval(function() {
+                  if(el.isReady && autoScroll)
+                  {
+                    if(currentPage++ >= iscroll.pages.length)
+                      currentPage = 0;
+
+                    goToPage(currentPage);
+                    selectThumbnail(currentPage);
+                  }
+                }, 4000);
+
+                el.addEventListener('click', function(e) {
+                  selectThumbnail();
+                  autoScroll = false;
+                });
                 
-                [].forEach.call(thumbnails.getElementsByTagName('img'), function(el) {
-                    if(el.classList.contains('selected'))
-                    {
-                      el.classList.remove('selected');
-                      el.parentNode.elevation = 0;
-                    }
+                iscroll.on("scrollEnd", function( event ) {
+                  selectThumbnail();
+                }, false);
+
+                iscroll.on("flick", function() {
+                  autoScroll = false;
                 });
 
-                if(!thumbnails.getElementsByTagName('img')[next])
-                  return;
-                
-                thumbnails.getElementsByTagName('img')[next].classList.add('selected');
-                thumbnails.getElementsByTagName('img')[next].parentNode.elevation = 5;
+                thumbnails.addEventListener('click', function(e) {
+                  if(e.srcElement.hasAttribute('data-iscroll-page'))
+                  {
+                    that.pageToSwap = parseInt(e.srcElement.getAttribute('data-iscroll-page'));
+                    goToPage(that.pageToSwap);
+                    selectThumbnail(that.pageToSwap);
+                    autoScroll = false;
+                  }
+                });
 
-              }
-
-              selectThumbnail(0);
-
-              //  return;
-              setInterval(function() {
-                if(el.isReady && autoScroll)
-                {
-                  if(currentPage++ >= iscroll.pages.length)
-                    currentPage = 0;
-
-                  goToPage(currentPage);
-                  selectThumbnail(currentPage);
-                }
-              }, 4000);
-
-              el.addEventListener('click', function(e) {
-                selectThumbnail();
-                autoScroll = false;
-              });
-              
-              iscroll.on("scrollEnd", function( event ) {
-                selectThumbnail();
-              }, false);
-
-              iscroll.on("flick", function() {
-                autoScroll = false;
-              });
-
-              thumbnails.addEventListener('click', function(e) {
-                if(e.srcElement.hasAttribute('data-iscroll-page'))
-                {
-                  var page = e.srcElement.getAttribute('data-iscroll-page');
-                  goToPage(page);
-                  selectThumbnail(page);
-                  autoScroll = false;
-                }
-              });
-
-              inlineScroller = this.$['inline-scroller'];
-
-              inlineScroller.addEventListener('click', function(e) {
-                var j = 0;
-                while(e.srcElement.src != thumbnails.querySelectorAll('img')[j].src)
-                    j++;
-                var nPage = thumbnails.querySelectorAll('img')[j].getAttribute('data-iscroll-page');  
-                goToPage(nPage);
-                selectThumbnail(nPage);
-                autoScroll = false;  
-              });
-
-              this.thumbnailsScroller('gallery-thumbnails');
-              
-            },
-
-            thumbnailsScroller : function(scrollerId) {
-              var el = this.$[scrollerId],
-                iscroll;
-
-              if(!el)
-                return;
-              
-              iscroll = el.scroll;
-
-              iscroll._init();
+                document.addEventListener('swapPage', function(numb) {
+                    goToPage(numb.detail);
+                    selectThumbnail(numb.detail);
+                    autoScroll = false;
+                });
 
             },
+
 
             prev : function() {
-              var el = this.$['inline-thumbnails'],
-                  iscroll;
+                var el = this.$['inline-thumbnails'],
+                    iscroll;
 
-              if(!el)
-                return;
-              
-              iscroll = el.scroll;
-               if(!iscroll) iscroll = el.scroll;
+                if(!el)
+                  return;
+                
+                iscroll = el.scroll;
+                 if(!iscroll) 
+                  iscroll = el.scroll;
+                  
                   el.scroll.prev();
-
-
+                  this.pageToSwap -= 1;
+                  this.fire('swapPage', this.pageToSwap);
                 
             },
 
             next : function() {
-              var el = this.$['inline-thumbnails'],
-                  iscroll;
+                var el = this.$['inline-thumbnails'],
+                    iscroll;
 
 
-              if(!el)
-                return;
+                if(!el)
+                  return;
 
-              if(!iscroll) iscroll = el.scroll;
-                  el.scroll.next();
-              
-            },
-
-            gPrev : function() {
-              var el = this.$['gallery-thumbnails'],
-                  iscroll;
-
-              if(!el)
-                return;
-              
-              iscroll = el.scroll;
-               if(!iscroll) iscroll = el.scroll;
-                  el.scroll.prev();
-
-
+                if(!iscroll) 
+                  iscroll = el.scroll;
+                    
+                el.scroll.next();
+                this.pageToSwap += 1;
+                this.fire('swapPage', this.pageToSwap);
                 
             },
 
+            gPrev : function() {
+                var el = this.$['gallery-thumbnails'],
+                    iscroll;
+
+                if(!el)
+                  return;
+                
+                iscroll = el.scroll;
+                 if(!iscroll)
+                  iscroll = el.scroll;
+                  
+                el.scroll.prev();
+                this.pageToSwap -= 1;
+                this.fire('swapPage', this.pageToSwap);
+                  
+            },
+
             gNext : function() {
-              var el = this.$['gallery-thumbnails'],
-                  iscroll;
+                var el = this.$['gallery-thumbnails'],
+                    iscroll;
 
 
-              if(!el)
-                return;
+                if(!el)
+                  return;
 
-              if(!iscroll) iscroll = el.scroll;
-                  el.scroll.next();
-              
-            }
+                if(!iscroll)
+                 iscroll = el.scroll;
 
+                el.scroll.next();
+                this.pageToSwap += 1;
+                this.fire('swapPage', this.pageToSwap);
+                
+              }
 
         })
     </script>
