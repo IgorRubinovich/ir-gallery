@@ -10,7 +10,7 @@
 
         <style>
 
-        #gallery {
+ #gallery {
             max-width : 1024px;
         }
 
@@ -30,6 +30,11 @@
         } 
 
         #gallery-scroller[hs] {
+            width : 900px;
+            height : 640px;
+        }
+
+        #gallery-scroller[ls] {
             width : 976px;
             height : 700px;
         } 
@@ -56,6 +61,13 @@
         }   
 
         .scroller-image[hs] {
+          max-width: 900px!important;
+          width : auto;
+          max-height : 640px;
+          height : auto;
+        }
+
+        .scroller-image[ls] {
           max-width : 976px!important;
           width : auto; 
           max-height: 700px;
@@ -78,35 +90,42 @@
         #inline-thumbnails {
             max-width: 667px;
             width : 667px!important;
-            height : 72px;
+            height : 78px;
             padding-top : 10px;
         }
 
         #gallery-thumbnails {
             max-width : 976px;
             width : 976px!important;
-            height : 72px;
+            height : 78px;
             padding-top : 10px;
         }
 
         #gallery-thumbnails[ss] {
             max-width : 500px;
             width : 500px!important;
-            height : 72px;
+            height : 78px;
             padding-top : 10px;
         }
 
          #gallery-thumbnails[ms] {
             max-width : 700px;
             width : 700px!important;
-            height : 72px;
+            height : 78px;
             padding-top : 10px;
         }
 
-         #gallery-thumbnails[hs] {
+        #gallery-thumbnails[hs] {
+            max-width: 900px;
+            width : 900px!important;
+            height: 78px;
+            padding-top: 10px;
+        }
+
+         #gallery-thumbnails[ls] {
             max-width : 976px;
             width : 976px!important;
-            height : 72px;
+            height : 78px;
             padding-top : 10px;
         }
 
@@ -154,6 +173,14 @@
         }
 
         .scroller-item[hs] {
+            -webkit-flex-basis:900px;
+            flex-basis  : 900px;
+            min-width : 900px;
+            margin-right : 10px;
+            position: relative;
+        }
+
+        .scroller-item[ls] {
             -webkit-flex-basis:976px;
             flex-basis  : 976px;
             min-width : 976px;
@@ -205,7 +232,8 @@
 
         <iron-media-query query="(max-width: 600px)" query-matches="{{ss}}"></iron-media-query>
         <iron-media-query query="(min-width: 600px) and (max-width: 900px)" query-matches="{{ms}}"></iron-media-query>
-        <iron-media-query query="(min-width: 1200px)" query-matches="{{hs}}"></iron-media-query>
+        <iron-media-query query="(min-width: 900px) and (max-width: 1200px)" query-matches="{{hs}}"></iron-media-query> 
+        <iron-media-query query="(min-width: 1200px)" query-matches="{{ls}}"></iron-media-query>
           
         <span on-click="showGallery" hidden$="{{ !showDefaultImages }}">
             <content></content>
@@ -216,9 +244,9 @@
           <p class="caption">{{ imgCaption }}</p>
         </paper-dialog>
 
-        <div hidden$="{{ !inlineMode }}">
+        <div id="inline-gallery" hidden$="{{ !inlineMode }}">
 
-          <rv-iscroll id="inline-scroller" scroll-x iscroll-snap=".inline-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}">
+          <rv-iscroll id="inline-scroller" scroll-x iscroll-snap=".inline-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" ls$="{{ls}}">
             <div class="scroller-items">
               <template id="template" is="dom-repeat" items="{{ images }}">
                 <div class="inline-item">
@@ -230,8 +258,8 @@
           </rv-iscroll>
 
           <div id="navigationButtons">
-            <paper-icon-button icon="arrow-back" on-click="prev"></paper-icon-button>
-            <paper-icon-button icon="arrow-forward" on-click="next"></paper-icon-button>
+            <paper-icon-button id="iback" icon="arrow-back"></paper-icon-button>
+            <paper-icon-button id="iforward" icon="arrow-forward"></paper-icon-button>
           </div>
 
           <rv-iscroll id="inline-thumbnails" scroll-x iscroll-snap=".thumbnail-item">
@@ -251,11 +279,11 @@
         <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller">
           <div>
 
-            <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}">
+            <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" ls$="{{ls}}">
               <div class="scroller-items">
                 <template id="template" is="dom-repeat" items="{{ images }}">
-                  <div class="scroller-item"  ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" >
-                    <img src="{{ item.image }}" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" class="scroller-image">
+                  <div class="scroller-item"  ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" ls$="{{ls}}">
+                    <img src="{{ item.image }}" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" ls$="{{ls}}" class="scroller-image">
                     <p class="caption">{{ item.caption }}</p>
                   </div>
                 </template>
@@ -263,11 +291,11 @@
             </rv-iscroll>
             
             <div id="navigationButtons">
-              <paper-icon-button icon="arrow-back" on-click="gPrev"></paper-icon-button>
-              <paper-icon-button icon="arrow-forward" on-click="gNext"></paper-icon-button>
+              <paper-icon-button id="back" icon="arrow-back"></paper-icon-button>
+              <paper-icon-button id="forward" icon="arrow-forward"></paper-icon-button>
             </div>
 
-            <rv-iscroll id="gallery-thumbnails" scroll-x iscroll-snap=".thumbnail-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}">
+            <rv-iscroll id="gallery-thumbnails" scroll-x iscroll-snap=".thumbnail-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" ls$="{{ls}}">
               <div class="thumbnail-items">
                   <template id="template" is="dom-repeat" items="{{ images }}">
                     <div class="thumbnail-item">
@@ -339,7 +367,7 @@
                 {
                   setTimeout(function() {
 
-                    this.setUpScroller('inline-scroller', 'inline-thumbnails');
+                    this.setUpScroller('inline-scroller', 'inline-thumbnails', 'iback', 'iforward');
 
                   }.bind(this), 200)
                 }  
@@ -371,7 +399,7 @@
                         this.$["gallery-thumbnails"].scroll.refresh();
                     }.bind(this), 200); 
 
-                    this.setUpScroller('gallery-scroller', 'gallery-thumbnails');
+                    this.setUpScroller('gallery-scroller', 'gallery-thumbnails', 'back', 'forward');
 
                   }
             },
@@ -384,13 +412,19 @@
                 this.$['inline-scroller'].scroll._init();
                 this.$['inline-thumbnails'].scroll._init();
 
+                setTimeout(function () {
+                        this.$["inline-scroller"].scroll.refresh();
+                        this.$["inline-thumbnails"].scroll.refresh();
+                    }.bind(this), 200); 
+
+                //this.setUpScroller('inline-scroller', 'inline-thumbnails');
             },
 
             swapImage : function(e) {
                 this.set('imgSrc', e.target.src);
             },
 
-            setUpScroller : function(scrollerSelector, thumbnails)
+            setUpScroller : function(scrollerSelector, thumbnails, back, forward)
             {
 
                 var el = this.$[scrollerSelector],
@@ -411,7 +445,6 @@
 
                 iscroll = el.scroll,
                 thumbnails = this.$[thumbnails],
-                autoScroll = true,
                 currentPage = 0;
                 iscroll._init();
 
@@ -442,23 +475,11 @@
                     return;
                   
                   thumbnails.getElementsByTagName('img')[next].classList.add('selected');
-                  thumbnails.getElementsByTagName('img')[next].parentNode.elevation = 5;
+                  thumbnails.getElementsByTagName('img')[next].parentNode.elevation = 3;
 
                 }
 
                 selectThumbnail(0);
-
-                //  return;
-                setInterval(function() {
-                  if(el.isReady && autoScroll)
-                  {
-                    if(currentPage++ >= iscroll.pages.length)
-                      currentPage = 0;
-
-                    goToPage(currentPage);
-                    selectThumbnail(currentPage);
-                  }
-                }, 4000);
 
                 el.addEventListener('click', function(e) {
                   selectThumbnail();
@@ -483,82 +504,27 @@
                   }
                 });
 
-                document.addEventListener('swapPage', function(numb) {
-                    goToPage(numb.detail);
-                    selectThumbnail(numb.detail);
+                this.$[back].addEventListener('click', function(e) {
+                    that.pageToSwap -= 1;
+                    if(that.pageToSwap < 0)
+                      that.pageToSwap = that.images.length;
+                    thumbnails.scroll.prev();
+                    goToPage(that.pageToSwap);
+                    selectThumbnail(that.pageToSwap);
+                    autoScroll = false;
+                });
+
+                this.$[forward].addEventListener('click', function(e) {
+                    that.pageToSwap += 1;
+                    if(that.pageToSwap > that.images.length)
+                      that.pageToSwap = 0;
+                    thumbnails.scroll.next();
+                    goToPage(that.pageToSwap);
+                    selectThumbnail(that.pageToSwap);
                     autoScroll = false;
                 });
 
             },
-
-
-            prev : function() {
-                var el = this.$['inline-thumbnails'],
-                    iscroll;
-
-                if(!el)
-                  return;
-                
-                iscroll = el.scroll;
-                 if(!iscroll) 
-                  iscroll = el.scroll;
-                  
-                  el.scroll.prev();
-                  this.pageToSwap -= 1;
-                  this.fire('swapPage', this.pageToSwap);
-                
-            },
-
-            next : function() {
-                var el = this.$['inline-thumbnails'],
-                    iscroll;
-
-
-                if(!el)
-                  return;
-
-                if(!iscroll) 
-                  iscroll = el.scroll;
-                    
-                el.scroll.next();
-                this.pageToSwap += 1;
-                this.fire('swapPage', this.pageToSwap);
-                
-            },
-
-            gPrev : function() {
-                var el = this.$['gallery-thumbnails'],
-                    iscroll;
-
-                if(!el)
-                  return;
-                
-                iscroll = el.scroll;
-                 if(!iscroll)
-                  iscroll = el.scroll;
-                  
-                el.scroll.prev();
-                this.pageToSwap -= 1;
-                this.fire('swapPage', this.pageToSwap);
-                  
-            },
-
-            gNext : function() {
-                var el = this.$['gallery-thumbnails'],
-                    iscroll;
-
-
-                if(!el)
-                  return;
-
-                if(!iscroll)
-                 iscroll = el.scroll;
-
-                el.scroll.next();
-                this.pageToSwap += 1;
-                this.fire('swapPage', this.pageToSwap);
-                
-              }
 
         })
     </script>
