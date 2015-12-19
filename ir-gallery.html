@@ -376,7 +376,7 @@
             showGallery : function(e) {
                 //this.images = Polymer.dom(this).querySelectorAll('img');
                 var targetImg = e.target.src,
-                    i;
+                    i, that = this;
 
                 if(this.onePictureMode)
                 {
@@ -397,7 +397,10 @@
                     setTimeout(function () {
                         this.$["gallery-scroller"].scroll.refresh();
                         this.$["gallery-thumbnails"].scroll.refresh();
+                        this.$['gallery-thumbnails'].fire('click', that.pageToSwap);
                     }.bind(this), 200); 
+
+                    //this.pageToSwap = 0;
 
                     this.setUpScroller('gallery-scroller', 'gallery-thumbnails', 'back', 'forward');
 
@@ -405,6 +408,7 @@
             },
 
             destroyScroller : function(){
+                var that = this;
 
                 this.$["gallery-scroller"].scroll.destroy();
                 this.$["gallery-thumbnails"].scroll.destroy();
@@ -415,7 +419,8 @@
                 setTimeout(function () {
                         this.$["inline-scroller"].scroll.refresh();
                         this.$["inline-thumbnails"].scroll.refresh();
-                    }.bind(this), 200); 
+                        this.$['inline-thumbnails'].fire('click', that.pageToSwap); 
+                    }.bind(this), 200);         
 
                 //this.setUpScroller('inline-scroller', 'inline-thumbnails');
             },
@@ -498,6 +503,13 @@
                   if(e.srcElement.hasAttribute('data-iscroll-page'))
                   {
                     that.pageToSwap = parseInt(e.srcElement.getAttribute('data-iscroll-page'));
+                    goToPage(that.pageToSwap);
+                    selectThumbnail(that.pageToSwap);
+                    autoScroll = false;
+                  }
+                  else
+                  {
+                    that.pageToSwap = e.detail;
                     goToPage(that.pageToSwap);
                     selectThumbnail(that.pageToSwap);
                     autoScroll = false;
