@@ -11,13 +11,13 @@
 
         <style>
 
- #gallery {
+        #gallery {
             max-width : 1024px;
         }
 
         #gallery-scroller {
-            width : 976px;
-            height : 730px;
+            width : 900px;
+            height : 580px;
         }     
 
         #gallery-scroller[ss] {
@@ -35,15 +35,11 @@
             height : 580px;
         }
 
-        #gallery-scroller[ls] {
-            width : 976px;
-            height : 700px;
-        } 
 
         .scroller-image {
-            max-width : 976px;
+            max-width : 900px;
             width : auto; 
-            max-height: 730px;
+            max-height: 580px;
             height : auto;
         }
 
@@ -65,13 +61,6 @@
           max-width: 900px!important;
           width : auto;
           max-height : 580px;
-          height : auto;
-        }
-
-        .scroller-image[ls] {
-          max-width : 976px!important;
-          width : auto; 
-          max-height: 700px;
           height : auto;
         }
 
@@ -109,8 +98,8 @@
         }
 
         #gallery-thumbnails {
-            max-width : 976px;
-            width : 976px!important;
+            max-width : 900px;
+            width : 900px!important;
             height : 78px;
             padding-top : 10px;
         }
@@ -136,12 +125,6 @@
             padding-top: 10px;
         }
 
-         #gallery-thumbnails[ls] {
-            max-width : 976px;
-            width : 976px!important;
-            height : 78px;
-            padding-top : 10px;
-        }
 
         .scroller-items {
             display: -webkit-box;
@@ -171,9 +154,9 @@
         }
 
         .scroller-item {
-            -webkit-flex-basis:976px;
-            flex-basis  : 976px;
-            min-width : 976px;
+            -webkit-flex-basis:900px;
+            flex-basis  : 900px;
+            min-width : 900px;
             margin-right : 10px;
             position: relative;
         }
@@ -198,14 +181,6 @@
             -webkit-flex-basis:900px;
             flex-basis  : 900px;
             min-width : 900px;
-            margin-right : 10px;
-            position: relative;
-        }
-
-        .scroller-item[ls] {
-            -webkit-flex-basis:976px;
-            flex-basis  : 976px;
-            min-width : 976px;
             margin-right : 10px;
             position: relative;
         }
@@ -255,7 +230,6 @@
         <iron-media-query query="(min-width: 320px) and (max-width: 600px)" query-matches="{{ss}}"></iron-media-query>
         <iron-media-query query="(min-width: 600px) and (max-width: 900px)" query-matches="{{ms}}"></iron-media-query>
         <iron-media-query query="(min-width: 900px) and (max-width: 1280px)" query-matches="{{hs}}"></iron-media-query> 
-        <iron-media-query query="(min-width: 1281px) and (max-width: 1600px)" query-matches="{{ls}}"></iron-media-query>
           
         <span on-click="showGallery" hidden$="{{ !showDefaultImages }}">
             <content></content>
@@ -268,7 +242,7 @@
 
         <div id="inline-gallery" hidden$="{{ !inlineMode }}">
 
-          <rv-iscroll id="inline-scroller" scroll-x iscroll-snap=".inline-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" ls$="{{ls}}">
+          <rv-iscroll id="inline-scroller" scroll-x iscroll-snap=".inline-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}">
             <div class="scroller-items">
               <template id="template" is="dom-repeat" items="{{ images }}">
                 <div class="inline-item" ss$="{{ss}}">
@@ -301,11 +275,11 @@
         <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller"  entry-animation="scale-up-animation" exit-animation="fade-out-animation">
           <div>
 
-            <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" ls$="{{ls}}">
+            <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}">
               <div class="scroller-items">
                 <template id="template" is="dom-repeat" items="{{ images }}">
-                  <div class="scroller-item"  ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" ls$="{{ls}}">
-                    <img src="{{ item.image }}" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" ls$="{{ls}}" class="scroller-image">
+                  <div class="scroller-item"  ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}">
+                    <img src="{{ item.image }}" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" class="scroller-image">
                     <p class="caption">{{ item.caption }}</p>
                   </div>
                 </template>
@@ -317,7 +291,7 @@
               <paper-icon-button id="forward" icon="arrow-forward"></paper-icon-button>
             </div>
 
-            <rv-iscroll id="gallery-thumbnails" scroll-x iscroll-snap=".thumbnail-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" ls$="{{ls}}">
+            <rv-iscroll id="gallery-thumbnails" scroll-x iscroll-snap=".thumbnail-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}">
               <div class="thumbnail-items">
                   <template id="template" is="dom-repeat" items="{{ images }}">
                     <div class="thumbnail-item">
