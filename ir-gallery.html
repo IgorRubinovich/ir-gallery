@@ -3,6 +3,7 @@
 <link rel="import" href="../paper-material/paper-material.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../iron-media-query/iron-media-query.html">
+<link rel="import" href="../neon-animation/neon-animation.html">
 
 <dom-module id="ir-gallery">
   
@@ -297,7 +298,7 @@
 
         </div>
 
-        <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller">
+        <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller"  entry-animation="scale-up-animation" exit-animation="fade-out-animation">
           <div>
 
             <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" ls$="{{ls}}">
