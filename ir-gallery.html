@@ -235,7 +235,7 @@
             <content></content>
         </span>
         
-        <paper-dialog id="onePictureDialog">
+        <paper-dialog id="onePictureDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
           <img src="{{ imgSrc }}" class="scroller-image">
           <p class="caption">{{ imgCaption }}</p>
         </paper-dialog>
@@ -396,9 +396,11 @@
                         this.$['gallery-thumbnails'].fire('click', that.pageToSwap);
                     }.bind(this), 200); 
 
-                    //this.pageToSwap = 0;
-
-                    this.setUpScroller('gallery-scroller', 'gallery-thumbnails', 'back', 'forward');
+                    if(!this.scrollerSetupDone)
+                      {
+                        this.scrollerSetupDone = true;
+                        this.setUpScroller('gallery-scroller', 'gallery-thumbnails', 'back', 'forward');
+                      }
 
                   }
             },
@@ -447,7 +449,9 @@
                 iscroll = el.scroll,
                 thumbnails = this.$[thumbnails],
                 currentPage = 0;
+                iscroll.directionLockThreshold = 20;
                 iscroll._init();
+                iscroll.directionLockThreshold = 20;
 
                 if(!el || !thumbnails || !thumbnails.childNodes)
                   return;
@@ -515,7 +519,7 @@
                 this.$[back].addEventListener('click', function(e) {
                     that.pageToSwap -= 1;
                     if(that.pageToSwap < 0)
-                      that.pageToSwap = that.images.length;
+                      that.pageToSwap = that.images.length - 1;
                     thumbnails.scroll.prev();
                     goToPage(that.pageToSwap);
                     selectThumbnail(that.pageToSwap);
@@ -524,7 +528,7 @@
 
                 this.$[forward].addEventListener('click', function(e) {
                     that.pageToSwap += 1;
-                    if(that.pageToSwap > that.images.length)
+                    if(that.pageToSwap > (that.images.length - 1))
                       that.pageToSwap = 0;
                     thumbnails.scroll.next();
                     goToPage(that.pageToSwap);
@@ -532,9 +536,33 @@
                     autoScroll = false;
                 });
 
+                if(this.scrollerSetupDone)
+                  this.$['gallery'].addEventListener('keydown', function(e) {
+                      if(e.keyCode == 37)
+                      {
+                        that.pageToSwap -= 1;
+                        if(that.pageToSwap < 0)
+                          that.pageToSwap = that.images.length - 1;
+                        thumbnails.scroll.prev();
+                        goToPage(that.pageToSwap);
+                        selectThumbnail(that.pageToSwap);
+                        autoScroll = false;
+                      }
+                      else
+                        if(e.keyCode == 39)
+                        {
+                          that.pageToSwap += 1;
+                          if(that.pageToSwap > (that.images.length - 1))
+                            that.pageToSwap = 0;
+                          thumbnails.scroll.next();
+                          goToPage(that.pageToSwap);
+                          selectThumbnail(that.pageToSwap);
+                          autoScroll = false;
+                        }
+                  });
+
             },
 
         })
     </script>
 </dom-module>
-
