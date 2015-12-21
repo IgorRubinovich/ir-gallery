@@ -20,8 +20,8 @@
         }     
 
         #gallery-scroller[ss] {
-            width : 500px;
-            height : 380px;
+            width : 320px;
+            height : 280px;
         } 
 
         #gallery-scroller[ms] {
@@ -31,7 +31,7 @@
 
         #gallery-scroller[hs] {
             width : 900px;
-            height : 640px;
+            height : 580px;
         }
 
         #gallery-scroller[ls] {
@@ -47,9 +47,9 @@
         }
 
         .scroller-image[ss] {
-          max-width : 500px!important;
+          max-width : 320px!important;
           width : auto; 
-          max-height: 380px;
+          max-height: 280px;
           height : auto;
         }
 
@@ -63,7 +63,7 @@
         .scroller-image[hs] {
           max-width: 900px!important;
           width : auto;
-          max-height : 640px;
+          max-height : 580px;
           height : auto;
         }
 
@@ -80,6 +80,12 @@
             height : 500px;
         }
 
+        #inline-scroller[ss] {
+            max-width: 320px;
+            width: 320px;
+            height: 280px;
+        }
+
         .scroller-image[inline-style] {
             max-width : 667px;
             width : auto;
@@ -94,6 +100,13 @@
             padding-top : 10px;
         }
 
+        #inline-thumbnails[ss] {
+            max-width: 320px;
+            width : 320px!important;
+            height : 78px;
+            padding-top : 10px;
+        }
+
         #gallery-thumbnails {
             max-width : 976px;
             width : 976px!important;
@@ -102,8 +115,8 @@
         }
 
         #gallery-thumbnails[ss] {
-            max-width : 500px;
-            width : 500px!important;
+            max-width : 320px;
+            width : 320px!important;
             height : 78px;
             padding-top : 10px;
         }
@@ -148,6 +161,14 @@
             position: relative;
         }
 
+        .inline-item {
+            -webkit-flex-basis:320px;
+            flex-basis  : 320px;
+            min-width : 320px;
+            margin-right : 10px;
+            position: relative;
+        }
+
         .scroller-item {
             -webkit-flex-basis:976px;
             flex-basis  : 976px;
@@ -157,9 +178,9 @@
         }
 
         .scroller-item[ss] {
-            -webkit-flex-basis:500px;
-            flex-basis  : 500px;
-            min-width : 500px;
+            -webkit-flex-basis:320px;
+            flex-basis  : 320px;
+            min-width : 320px;
             margin-right : 10px;
             position: relative;
         }
@@ -230,10 +251,10 @@
 
         </style>
 
-        <iron-media-query query="(max-width: 600px)" query-matches="{{ss}}"></iron-media-query>
+        <iron-media-query query="(min-width: 320px) and (max-width: 600px)" query-matches="{{ss}}"></iron-media-query>
         <iron-media-query query="(min-width: 600px) and (max-width: 900px)" query-matches="{{ms}}"></iron-media-query>
-        <iron-media-query query="(min-width: 900px) and (max-width: 1200px)" query-matches="{{hs}}"></iron-media-query> 
-        <iron-media-query query="(min-width: 1200px)" query-matches="{{ls}}"></iron-media-query>
+        <iron-media-query query="(min-width: 900px) and (max-width: 1280px)" query-matches="{{hs}}"></iron-media-query> 
+        <iron-media-query query="(min-width: 1281px) and (max-width: 1600px)" query-matches="{{ls}}"></iron-media-query>
           
         <span on-click="showGallery" hidden$="{{ !showDefaultImages }}">
             <content></content>
@@ -249,7 +270,7 @@
           <rv-iscroll id="inline-scroller" scroll-x iscroll-snap=".inline-item" ss$="{{ss}}" ms$="{{ms}}" hs$="{{hs}}" ls$="{{ls}}">
             <div class="scroller-items">
               <template id="template" is="dom-repeat" items="{{ images }}">
-                <div class="inline-item">
+                <div class="inline-item" ss$="{{ss}}">
                   <img src="{{ item.image }}" inline-style$="{{ inlineMode }}" ss$="{{ss}}" class="scroller-image" on-click="showGallery">
                   <p class="caption">{{ item.caption }}</p>
                 </div>
@@ -262,7 +283,7 @@
             <paper-icon-button id="iforward" icon="arrow-forward"></paper-icon-button>
           </div>
 
-          <rv-iscroll id="inline-thumbnails" scroll-x iscroll-snap=".thumbnail-item">
+          <rv-iscroll id="inline-thumbnails" scroll-x iscroll-snap=".thumbnail-item" ss$="{{ss}}">
             <div class="thumbnail-items">
                 <template id="template" is="dom-repeat" items="{{ images }}">
                   <div class="thumbnail-item">
