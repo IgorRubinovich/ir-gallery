@@ -344,29 +344,31 @@
 
                 this.images = arr;
 
-                if((this.images.length == 1) && !this.onePictureMode)
+                if(this.images.length !== 0)
                 {
-                  this.onePictureMode = true;
-                  this.showDefaultImages = true;
-                }
+                    if((this.images.length == 1) && !this.onePictureMode)
+                    {
+                      this.onePictureMode = true;
+                      this.showDefaultImages = true;
+                    }
 
-                if(this.galleryMode)
-                  this.showDefaultImages = true;
+                    if(this.galleryMode)
+                      this.showDefaultImages = true;
 
-                if(!this.inlineMode && !this.galleryMode && !this.onePictureMode)
-                {
-                  this.inlineMode = true;
-                  this.galleryMode = true;
-                }
+                    if(!this.inlineMode && !this.galleryMode && !this.onePictureMode)
+                    {
+                      this.inlineMode = true;
+                      this.galleryMode = true;
+                    }
 
-                if(this.inlineMode)
-                {
-                  setTimeout(function() {
+                    if(this.inlineMode)
+                    {
+                      setTimeout(function() {
+                        this.setUpScroller('inline-scroller', 'inline-thumbnails', 'iback', 'iforward');
 
-                    this.setUpScroller('inline-scroller', 'inline-thumbnails', 'iback', 'iforward');
-
-                  }.bind(this), 200)
-                }  
+                      }.bind(this), 200)
+                    }
+                }      
             },
 
             showGallery : function(e) {
