@@ -271,7 +271,8 @@
                     {
                       setTimeout(function() {
                         this.setUpScroller('inline-scroller', 'inline-thumbnails', 'iback', 'iforward');
-
+                        this.$['inline-scroller'].scroll.refresh();
+                        this.$['inline-thumbnails'].scroll.refresh();
                       }.bind(this), 200)
                     }
                 }      
@@ -435,9 +436,9 @@
                 });
 
                 thumbnails.addEventListener('click', function(e) {
-                  if(e.srcElement.hasAttribute('data-iscroll-page'))
+                  if(e.target.hasAttribute('data-iscroll-page'))
                   {
-                    that.pageToSwap = parseInt(e.srcElement.getAttribute('data-iscroll-page'));
+                    that.pageToSwap = parseInt(e.target.getAttribute('data-iscroll-page'));
                     goToPage(that.pageToSwap);
                     selectThumbnail(that.pageToSwap);
                     autoScroll = false;
