@@ -12,42 +12,31 @@
 
         <style>
 
-        #gallery {
-            max-width : 1024px;
-        }
-
         #gallery-scroller {
             width : 900px;
             height : 580px;
         }     
 
         .scroller-image {
-            max-width : 900px;
-            max-height: 580px;
             height : 580px;
         }
 
         #inline-scroller {
-            max-width: 667px;
             width : 667px;
             height : 500px;
         }
 
         .scroller-image[inline-style] {
-            max-width : 667px;
-            max-height: 500px;
             height : 500px;
         }
 
         #inline-thumbnails {
-            max-width: 667px;
             width : 667px;
             height : 78px;
             padding-top : 10px;
         }
 
         #gallery-thumbnails {
-            max-width : 900px;
             width : 900px;
             height : 78px;
             padding-top : 10px;
@@ -279,15 +268,15 @@
             },
 
             resizeGallery : function(e) {
-                this.$['gallery-scroller'].style.width = e.currentTarget._fitWidth / 2.5 + "px";
-                this.$['gallery-scroller'].style.height = e.currentTarget._fitHeight / 2+ "px";
-                this.$['gallery-thumbnails'].style.width = e.currentTarget._fitWidth / 2.5 + "px";
+                this.$['gallery-scroller'].style.width = e.currentTarget._fitWidth - 128 + "px";
+                this.$['gallery-scroller'].style.height = e.currentTarget._fitHeight / 1.5 + "px";
+                this.$['gallery-thumbnails'].style.width = e.currentTarget._fitWidth - 128 + "px";
 
                 var imagesToResize = this.$['gallery-scroller'].getElementsByTagName('iron-image');
                 for(var i = 0; i < imagesToResize.length; i++)
                 {
-                  imagesToResize[i].style.width = document.documentElement.clientWidth / 2.5 + "px";
-                  imagesToResize[i].style.height = document.documentElement.clientHeight / 2 + "px";
+                  imagesToResize[i].style.width = document.documentElement.clientWidth - 128 + "px";
+                  imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 + "px";
                 } 
             },
 
@@ -297,14 +286,14 @@
                 var imagesToResize = this.$['gallery-scroller'].getElementsByTagName('iron-image');
                 for(var i = 0; i < imagesToResize.length; i++)
                 {
-                  imagesToResize[i].style.width = document.documentElement.clientWidth / 2.5 + "px";
-                  imagesToResize[i].style.height = document.documentElement.clientHeight / 2 + "px";
+                  imagesToResize[i].style.width = document.documentElement.clientWidth - 128 + "px";
+                  imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 + "px";
                 }
 
-                this.$['gallery-scroller'].style.width = document.documentElement.clientWidth / 2.5 + "px";
-                this.$['gallery-scroller'].style.height = document.documentElement.clientHeight / 2 + "px";
+                this.$['gallery-scroller'].style.width = document.documentElement.clientWidth - 128 + "px";
+                this.$['gallery-scroller'].style.height = document.documentElement.clientHeight / 1.5 + "px";
 
-                this.$['gallery-thumbnails'].style.width = document.documentElement.clientWidth / 2.5 + "px";
+                this.$['gallery-thumbnails'].style.width = document.documentElement.clientWidth - 128 + "px";
 
 
                 var targetImg = e.target.src,
