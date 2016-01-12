@@ -109,9 +109,9 @@
             <content></content>
         </span>
         
-        <paper-dialog id="onePictureDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-          <img src="{{ imgSrc }}" class="scroller-image">
-          <p class="caption">{{ imgCaption }}</p>
+        <paper-dialog id="onePictureDialog" on-iron-resize="resizeGallery" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+          <iron-image src="{{ imgSrc }}" class="scroller-image" sizing="contain">
+          <span class="caption">{{ imgCaption }}</span>
         </paper-dialog>
 
         <div id="inline-gallery" hidden$="{{ !inlineMode }}">
@@ -121,7 +121,7 @@
               <template id="template" is="dom-repeat" items="{{ images }}">
                 <div class="inline-item">
                   <iron-image src="{{ item.image }}" inline-style$="{{ inlineMode }}" class="scroller-image" sizing="contain" on-click="showGallery"></iron-image>
-                  <p class="caption">{{ item.caption }}</p>
+                  <span class="caption">{{ item.caption }}</span>
                 </div>
               </template>
             </div>
@@ -154,7 +154,7 @@
                 <template id="template" is="dom-repeat" items="{{ images }}">
                   <div class="scroller-item">
                     <iron-image src="{{ item.image }}" class="scroller-image" sizing="contain"></iron-image>
-                    <p class="caption">{{ item.caption }}</p>
+                    <span class="caption">{{ item.caption }}</span>
                   </div>
                 </template>
               </div>
@@ -200,7 +200,7 @@
 
             ready : function() {
                 var images = Polymer.dom(this).querySelectorAll('img'),
-                    captions = Polymer.dom(this).querySelectorAll('p'),
+                    captions = Polymer.dom(this).querySelectorAll('span'),
                     arr = [];
 
                 for(var i = 0; i < images.length; i++)
@@ -268,16 +268,27 @@
             },
 
             resizeGallery : function(e) {
-                this.$['gallery-scroller'].style.width = e.currentTarget._fitWidth - 128 + "px";
-                this.$['gallery-scroller'].style.height = e.currentTarget._fitHeight / 1.5 + "px";
-                this.$['gallery-thumbnails'].style.width = e.currentTarget._fitWidth - 128 + "px";
-
-                var imagesToResize = this.$['gallery-scroller'].getElementsByTagName('iron-image');
-                for(var i = 0; i < imagesToResize.length; i++)
+                if(e.currentTarget.id == 'gallery')
                 {
-                  imagesToResize[i].style.width = document.documentElement.clientWidth - 128 + "px";
-                  imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 + "px";
-                } 
+                  this.$['gallery-scroller'].style.width = e.currentTarget._fitWidth - 128 + "px";
+                  this.$['gallery-scroller'].style.height = e.currentTarget._fitHeight / 1.5 + "px";
+                  this.$['gallery-thumbnails'].style.width = e.currentTarget._fitWidth - 128 + "px";
+
+                  var imagesToResize = this.$['gallery-scroller'].getElementsByTagName('iron-image');
+                  for(var i = 0; i < imagesToResize.length; i++)
+                  {
+                    imagesToResize[i].style.width = document.documentElement.clientWidth - 128 + "px";
+                    imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 + "px";
+                  } 
+                }
+                else
+                  if(e.currentTarget.id == 'onePictureDialog')
+                  {
+                    this.$.onePictureDialog.style.width = e.currentTarget._fitWidth + "px";
+                    this.$.onePictureDialog.style.height = e.currentTarget._fitHeight + "px";
+                    this.$.onePictureDialog.getElementsByTagName('iron-image')[0].style.width = e.currentTarget._fitWidth - 128 + "px";
+                    this.$.onePictureDialog.getElementsByTagName('iron-image')[0].style.height = e.currentTarget._fitHeight - 128 + "px";
+                  }
             },
 
             showGallery : function(e) {
@@ -302,8 +313,13 @@
                 if(this.onePictureMode)
                 {
                   this.imgSrc = targetImg;
-                  if(Polymer.dom(this).querySelector('p'))
-                    this.imgCaption = Polymer.dom(this).querySelector('p').innerHTML;
+                  if(Polymer.dom(this).querySelector('span'))
+                    this.imgCaption = Polymer.dom(this).querySelector('span').innerHTML;
+
+                  this.$.onePictureDialog.style.width = document.documentElement.clientWidth + "px";
+                  this.$.onePictureDialog.style.height = document.documentElement.clientHeight + "px";
+                  this.$.onePictureDialog.getElementsByTagName('iron-image')[0].style.width = document.documentElement.clientWidth - 128 + "px";
+                  this.$.onePictureDialog.getElementsByTagName('iron-image')[0].style.height = document.documentElement.clientHeight - 128 + "px";
 
                   this.$.onePictureDialog.open();
                 }
