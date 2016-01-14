@@ -220,15 +220,17 @@
 
                 setTimeout(function() {
                     var that = this;
-                    this.$['inline-gallery'].style.width = this.$['inline-scroller'].style.width = this.$['inline-thumbnails'].style.width = this.parentNode.offsetWidth + "px";
-                    var imagesToResize = this.$['inline-scroller'].getElementsByTagName('iron-image');
-                        for(var i = 0; i < imagesToResize.length; i++)
-                        {
-                          imagesToResize[i].style.width = this.parentNode.offsetWidth + "px";
-                          imagesToResize[i].style.height = document.documentElement.clientHeight / 2 + "px";
-                        } 
+                    if(this.parentNode)
+                    {
+                      this.$['inline-gallery'].style.width = this.$['inline-scroller'].style.width = this.$['inline-thumbnails'].style.width = this.parentNode.offsetWidth + "px";
+                      var imagesToResize = this.$['inline-scroller'].getElementsByTagName('iron-image');
+                          for(var i = 0; i < imagesToResize.length; i++)
+                          {
+                            imagesToResize[i].style.width = this.parentNode.offsetWidth + "px";
+                            imagesToResize[i].style.height = document.documentElement.clientHeight / 2 + "px";
+                          } 
 
-                    window.addEventListener('resize', function(e) {
+                      window.addEventListener('resize', function(e) {
                         that.$['inline-gallery'].style.width = that.$['inline-scroller'].style.width = that.$['inline-thumbnails'].style.width = that.parentNode.offsetWidth + "px";
                         var imagesToResize = that.$['inline-scroller'].getElementsByTagName('iron-image');
                         for(var i = 0; i < imagesToResize.length; i++)
@@ -236,7 +238,8 @@
                           imagesToResize[i].style.width = that.parentNode.offsetWidth + "px";
                           imagesToResize[i].style.height = document.documentElement.clientHeight / 2 + "px";
                         } 
-                    });
+                      });    
+                    }                    
 
                     this.$['inline-scroller'].scroll.refresh();
                     this.$['inline-thumbnails'].scroll.refresh();
@@ -343,7 +346,7 @@
 
                     this.$['gallery-scroller'].scroll._init();
                     this.$['gallery-thumbnails'].scroll._init();
-                    
+
                     setTimeout(function () {
                         this.$["gallery-scroller"].scroll.refresh();
                         this.$["gallery-thumbnails"].scroll.refresh();
