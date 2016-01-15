@@ -191,6 +191,7 @@
                 imgSrc : { type : String },
                 imgCaption : { type : String },
                 showDefaultImages : { type : Boolean, value : false },
+                isItFirstTime : { type : Boolean, value : false },
                 onePictureMode : { type : Boolean, value : false },
                 inlineMode : { type : Boolean, value : false },
                 galleryMode : { type : Boolean, value : false },
@@ -275,7 +276,7 @@
             },
 
             resizeGallery : function(e) {
-                if(e.currentTarget.id == 'gallery')
+                if(e.currentTarget.id == 'gallery' && !this.isItFirstTime)
                 {
                   this.$['gallery-scroller'].style.width = e.currentTarget._fitWidth - 128 + "px";
                   this.$['gallery-scroller'].style.height = e.currentTarget._fitHeight / 1.5 + "px";
@@ -294,7 +295,7 @@
                     }.bind(this), 200)
                 }
                 else
-                  if(e.currentTarget.id == 'onePictureDialog')
+                  if(e.currentTarget.id == 'onePictureDialog' && !this.isItFirstTime)
                   {
                     this.$.onePictureDialog.style.width = e.currentTarget._fitWidth + "px";
                     this.$.onePictureDialog.style.height = e.currentTarget._fitHeight + "px";
@@ -321,6 +322,12 @@
 
                 var targetImg = e.target.src,
                     i, that = this;
+
+                this.isItFirstTime = true;
+                
+                setTimeout(function() {
+                    this.isItFirstTime = false;
+                }.bind(this), 500);    
 
                 if(this.onePictureMode)
                 {
