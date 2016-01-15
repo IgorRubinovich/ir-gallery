@@ -239,6 +239,8 @@
 
                       window.addEventListener('resize', function(e) {
                         that.$['inline-gallery'].style.width = that.$['inline-scroller'].style.width = that.$['inline-thumbnails'].style.width = galleryParent.offsetWidth + "px";
+                        that.$['inline-gallery'].style.height = document.documentElement.clientHeight / 2 + 120 + "px";
+                        that.$['inline-scroller'].style.height = document.documentElement.clientHeight / 2 + "px"
                         var imagesToResize = that.$['inline-scroller'].getElementsByTagName('iron-image');
                         for(var i = 0; i < imagesToResize.length; i++)
                         {
