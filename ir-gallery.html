@@ -457,9 +457,9 @@
                 });
 
                 thumbnails.addEventListener('click', function(e) {
-                  if(e.target.hasAttribute('data-iscroll-page'))
+                  if(Polymer.dom(e).localTarget.hasAttribute('data-iscroll-page'))
                   {
-                    that.pageToSwap = parseInt(e.target.getAttribute('data-iscroll-page'));
+                    that.pageToSwap = parseInt(Polymer.dom(e).localTarget.getAttribute('data-iscroll-page'));
                     goToPage(that.pageToSwap);
                     selectThumbnail(that.pageToSwap);
                     autoScroll = false;
