@@ -105,7 +105,7 @@
 
         </style>
           
-        <span on-tap="showGallery" hidden$="{{ !showDefaultImages }}">
+        <span on-click="showGallery" hidden$="{{ !showDefaultImages }}">
             <content></content>
         </span>
         
@@ -120,7 +120,7 @@
             <div class="scroller-items">
               <template id="template" is="dom-repeat" items="{{ images }}">
                 <div class="inline-item">
-                  <iron-image src="{{ item.image }}" inline-style$="{{ inlineMode }}" class="scroller-image" sizing="contain" on-tap="showGallery"></iron-image>
+                  <iron-image src="{{ item.image }}" inline-style$="{{ inlineMode }}" class="scroller-image" sizing="contain" on-click="showGallery"></iron-image>
                   <span class="caption">{{ item.caption }}</span>
                 </div>
               </template>
@@ -286,9 +286,9 @@
             resizeGallery : function(e) {
                 if(e.currentTarget.id == 'gallery' && !this.isItFirstTime)
                 {
-                  this.$['gallery-scroller'].style.width = e.currentTarget._fitWidth - 128 + "px";
-                  this.$['gallery-scroller'].style.height = e.currentTarget._fitHeight / 1.5 + "px";
-                  this.$['gallery-thumbnails'].style.width = e.currentTarget._fitWidth - 128 + "px";
+                  this.$['gallery-scroller'].style.width = document.documentElement.clientWidth - 128 + "px";
+                  this.$['gallery-scroller'].style.height = document.documentElement.clientHeight / 1.5 + "px";
+                  this.$['gallery-thumbnails'].style.width = document.documentElement.clientWidth - 128 + "px";
 
                   var imagesToResize = this.$['gallery-scroller'].getElementsByTagName('iron-image');
                   for(var i = 0; i < imagesToResize.length; i++)
@@ -305,10 +305,10 @@
                 else
                   if(e.currentTarget.id == 'onePictureDialog' && !this.isItFirstTime)
                   {
-                    this.$.onePictureDialog.style.width = e.currentTarget._fitWidth + "px";
-                    this.$.onePictureDialog.style.height = e.currentTarget._fitHeight + "px";
-                    this.$.onePictureDialog.getElementsByTagName('iron-image')[0].style.width = e.currentTarget._fitWidth - 128 + "px";
-                    this.$.onePictureDialog.getElementsByTagName('iron-image')[0].style.height = e.currentTarget._fitHeight - 128 + "px";
+                    this.$.onePictureDialog.style.width = document.documentElement.clientWidth + "px";
+                    this.$.onePictureDialog.style.height = document.documentElement.clientHeight + "px";
+                    this.$.onePictureDialog.getElementsByTagName('iron-image')[0].style.width = document.documentElement.clientWidth - 128 + "px";
+                    this.$.onePictureDialog.getElementsByTagName('iron-image')[0].style.height = document.documentElement.clientHeight - 128 + "px";
                   }
             },
 
@@ -367,7 +367,7 @@
                       setTimeout(function () {
                           this.$["gallery-scroller"].scroll.refresh();
                           this.$["gallery-thumbnails"].scroll.refresh();
-                          this.$['gallery-thumbnails'].fire('tap', that.pageToSwap);
+                          this.$['gallery-thumbnails'].fire('click', that.pageToSwap);
                       }.bind(this), 200); 
 
                       if(!this.scrollerSetupDone)
@@ -392,7 +392,7 @@
                 setTimeout(function () {
                         this.$["inline-scroller"].scroll.refresh();
                         this.$["inline-thumbnails"].scroll.refresh();
-                        this.$['inline-thumbnails'].fire('tap', that.pageToSwap); 
+                        this.$['inline-thumbnails'].fire('click', that.pageToSwap); 
                     }.bind(this), 200);         
 
                 //this.setUpScroller('inline-scroller', 'inline-thumbnails');
@@ -461,7 +461,7 @@
 
                 selectThumbnail(0);
 
-                el.addEventListener('tap', function(e) {
+                el.addEventListener('click', function(e) {
                   selectThumbnail();
                   autoScroll = false;
                 });
@@ -474,7 +474,7 @@
                   autoScroll = false;
                 });
 
-                thumbnails.addEventListener('tap', function(e) {
+                thumbnails.addEventListener('click', function(e) {
                   if(Polymer.dom(e).localTarget.hasAttribute('data-iscroll-page'))
                   {
                     that.pageToSwap = parseInt(Polymer.dom(e).localTarget.getAttribute('data-iscroll-page'));
@@ -482,9 +482,17 @@
                     selectThumbnail(that.pageToSwap);
                     autoScroll = false;
                   }
+                   else
+                    if(typeof e.detail == "number")
+                     {
+                       that.pageToSwap = e.detail;
+                       goToPage(that.pageToSwap);
+                       selectThumbnail(that.pageToSwap);
+                       autoScroll = false;
+                     }
                 });
 
-                this.$[back].addEventListener('tap', function(e) {
+                this.$[back].addEventListener('click', function(e) {
                     that.pageToSwap -= 1;
                     if(that.pageToSwap < 0)
                       that.pageToSwap = that.images.length - 1;
@@ -494,7 +502,7 @@
                     autoScroll = false;
                 });
 
-                this.$[forward].addEventListener('tap', function(e) {
+                this.$[forward].addEventListener('click', function(e) {
                     that.pageToSwap += 1;
                     if(that.pageToSwap > (that.images.length - 1))
                       that.pageToSwap = 0;
