@@ -105,7 +105,7 @@
 
         </style>
           
-        <span on-click="showGallery" hidden$="{{ !showDefaultImages }}">
+        <span on-tap="showGallery" hidden$="{{ !showDefaultImages }}">
             <content></content>
         </span>
         
@@ -120,7 +120,7 @@
             <div class="scroller-items">
               <template id="template" is="dom-repeat" items="{{ images }}">
                 <div class="inline-item">
-                  <iron-image src="{{ item.image }}" inline-style$="{{ inlineMode }}" class="scroller-image" sizing="contain" on-click="showGallery"></iron-image>
+                  <iron-image src="{{ item.image }}" inline-style$="{{ inlineMode }}" class="scroller-image" sizing="contain" on-tap="showGallery"></iron-image>
                   <span class="caption">{{ item.caption }}</span>
                 </div>
               </template>
@@ -367,7 +367,7 @@
                       setTimeout(function () {
                           this.$["gallery-scroller"].scroll.refresh();
                           this.$["gallery-thumbnails"].scroll.refresh();
-                          this.$['gallery-thumbnails'].fire('click', that.pageToSwap);
+                          this.$['gallery-thumbnails'].fire('tap', that.pageToSwap);
                       }.bind(this), 200); 
 
                       if(!this.scrollerSetupDone)
@@ -392,7 +392,7 @@
                 setTimeout(function () {
                         this.$["inline-scroller"].scroll.refresh();
                         this.$["inline-thumbnails"].scroll.refresh();
-                        this.$['inline-thumbnails'].fire('click', that.pageToSwap); 
+                        this.$['inline-thumbnails'].fire('tap', that.pageToSwap); 
                     }.bind(this), 200);         
 
                 //this.setUpScroller('inline-scroller', 'inline-thumbnails');
@@ -461,7 +461,7 @@
 
                 selectThumbnail(0);
 
-                el.addEventListener('click', function(e) {
+                el.addEventListener('tap', function(e) {
                   selectThumbnail();
                   autoScroll = false;
                 });
@@ -474,7 +474,7 @@
                   autoScroll = false;
                 });
 
-                thumbnails.addEventListener('click', function(e) {
+                thumbnails.addEventListener('tap', function(e) {
                   if(Polymer.dom(e).localTarget.hasAttribute('data-iscroll-page'))
                   {
                     that.pageToSwap = parseInt(Polymer.dom(e).localTarget.getAttribute('data-iscroll-page'));
@@ -492,7 +492,7 @@
                      }
                 });
 
-                this.$[back].addEventListener('click', function(e) {
+                this.$[back].addEventListener('tap', function(e) {
                     that.pageToSwap -= 1;
                     if(that.pageToSwap < 0)
                       that.pageToSwap = that.images.length - 1;
@@ -502,7 +502,7 @@
                     autoScroll = false;
                 });
 
-                this.$[forward].addEventListener('click', function(e) {
+                this.$[forward].addEventListener('tap', function(e) {
                     that.pageToSwap += 1;
                     if(that.pageToSwap > (that.images.length - 1))
                       that.pageToSwap = 0;
