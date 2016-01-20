@@ -103,6 +103,12 @@
             justify-content: space-between;
         }
 
+        #cancelB {
+            float: right;
+            margin-top: 0;
+            color: grey;
+        }
+
         </style>
           
         <span on-tap="showGallery" hidden$="{{ !showDefaultImages }}">
@@ -147,6 +153,7 @@
         </div>
 
         <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller" on-iron-resize="resizeGallery"  entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+        <paper-icon-button id="cancelB" icon="cancel" on-click="destroyScroller"></paper-icon-button>
           <div>
 
             <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item">
@@ -382,6 +389,8 @@
 
             destroyScroller : function(){
                 var that = this;
+
+                this.$.gallery.close();
 
                 this.$["gallery-scroller"].scroll.destroy();
                 this.$["gallery-thumbnails"].scroll.destroy();
