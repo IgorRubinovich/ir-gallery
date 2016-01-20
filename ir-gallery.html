@@ -105,7 +105,8 @@
 
         #cancelB {
             float: right;
-            margin-top: 0;
+            margin-top: 5px;
+            margin-right: 5px;
             color: grey;
         }
 
@@ -116,6 +117,7 @@
         </span>
         
         <paper-dialog id="onePictureDialog" on-iron-resize="resizeGallery" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+          <paper-icon-button id="cancelB" icon="cancel" on-click="closeDialog"></paper-icon-button>
           <iron-image src="{{ imgSrc }}" class="scroller-image" sizing="contain"></iron-image>
           <span class="caption">{{ imgCaption }}</span>
         </paper-dialog>
@@ -405,6 +407,10 @@
                     }.bind(this), 200);         
 
                 //this.setUpScroller('inline-scroller', 'inline-thumbnails');
+            },
+
+            closeDialog : function(){
+                this.$.onePictureDialog.close();
             },
 
             swapImage : function(e) {
