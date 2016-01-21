@@ -87,6 +87,20 @@
             border-right: 16px solid transparent;
         }
 
+        paper-dialog { 
+            border-style: solid;
+            border-radius: 15px;
+            border-color: #6B6B6B;
+            border-width: 4px;
+            background-color: #f8f8f8;
+            box-shadow: 0 0 0 0;
+        }
+
+        .fullImg {
+            max-width: 2000px;
+            max-height: 2000px;
+        }
+
         .caption {
             display: block;
             clear: left;
@@ -105,8 +119,9 @@
 
         #cancelB {
             float: right;
-            margin-top: 5px;
-            margin-right: 5px;
+            margin: 0;
+            margin-right: 12px;
+            margin-bottom: 12px;
             color: grey;
         }
 
@@ -116,10 +131,11 @@
             <content></content>
         </span>
         
-        <paper-dialog id="onePictureDialog" on-iron-resize="resizeGallery" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-          <paper-icon-button id="cancelB" icon="cancel" on-click="closeDialog"></paper-icon-button>
-          <iron-image src="{{ imgSrc }}" class="scroller-image" sizing="contain"></iron-image>
+        <paper-dialog id="onePictureDialog" on-iron-resize="resizeGallery" entry-animation="scale-up-animation" with-backdrop exit-animation="fade-out-animation">
+          <!--iron-image src="{{ imgSrc }}" class="scroller-image" sizing="contain"></iron-image-->
+          <img class="fullImg" src="{{ imgSrc }}">
           <span class="caption">{{ imgCaption }}</span>
+          <paper-icon-button id="cancelB" icon="cancel" on-click="closeDialog"></paper-icon-button>
         </paper-dialog>
 
         <div id="inline-gallery" hidden$="{{ !inlineMode }}">
@@ -154,8 +170,7 @@
 
         </div>
 
-        <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller" on-iron-resize="resizeGallery"  entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-        <paper-icon-button id="cancelB" icon="cancel" on-click="destroyScroller"></paper-icon-button>
+        <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller" on-iron-resize="resizeGallery" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
           <div>
 
             <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item">
@@ -187,6 +202,7 @@
             </rv-iscroll>  
 
           </div>
+          <paper-icon-button id="cancelB" icon="cancel" on-click="destroyScroller"></paper-icon-button>
         </paper-dialog>
                 
     </template>
@@ -257,7 +273,7 @@
                           imagesToResize[i].style.height = document.documentElement.clientHeight / 2 + "px";
                         } 
                       });    
-                    }                    
+                    }                
 
                     this.$['inline-scroller'].scroll.refresh();
                     this.$['inline-thumbnails'].scroll.refresh();
@@ -314,10 +330,7 @@
                 else
                   if(e.currentTarget.id == 'onePictureDialog' && !this.isItFirstTime)
                   {
-                    this.$.onePictureDialog.style.width = document.documentElement.clientWidth + "px";
-                    this.$.onePictureDialog.style.height = document.documentElement.clientHeight + "px";
-                    this.$.onePictureDialog.getElementsByTagName('iron-image')[0].style.width = document.documentElement.clientWidth - 128 + "px";
-                    this.$.onePictureDialog.getElementsByTagName('iron-image')[0].style.height = document.documentElement.clientHeight - 128 + "px";
+                    
                   }
             },
 
@@ -354,10 +367,18 @@
                     if(Polymer.dom(this).querySelector('span'))
                       this.imgCaption = Polymer.dom(this).querySelector('span').innerHTML;
 
-                    this.$.onePictureDialog.style.width = document.documentElement.clientWidth + "px";
-                    this.$.onePictureDialog.style.height = document.documentElement.clientHeight + "px";
-                    this.$.onePictureDialog.getElementsByTagName('iron-image')[0].style.width = document.documentElement.clientWidth - 128 + "px";
-                    this.$.onePictureDialog.getElementsByTagName('iron-image')[0].style.height = document.documentElement.clientHeight - 128 + "px";
+                    var width = document.documentElement.clientWidth;
+                    var height = document.documentElement.clientHeight;
+                    var currentImg = this.$.onePictureDialog.getElementsByTagName('img')[0];
+
+                    var imgWidth = width > height ? currentImg.width/currentImg.height * height : width;
+                    var imgHeight = height > width ? currentImg.height/currentImg.width * width : height;
+
+                    this.$.onePictureDialog.style.width = imgWidth + "px";
+                    this.$.onePictureDialog.style.height = imgHeight + "px";
+
+                    currentImg.style.width = imgWidth - 57 + "px";
+                    currentImg.style.height = imgHeight - 148 + "px";
 
                     this.$.onePictureDialog.open();
                   }
