@@ -90,7 +90,7 @@
         paper-dialog { 
             border-style: solid;
             border-radius: 15px;
-            border-color: #6B6B6B;
+            border-color: rgba(0, 0, 0, 0.1);
             border-width: 4px;
             background-color: #f8f8f8;
             box-shadow: 0 0 0 0;
@@ -371,16 +371,14 @@
                     var height = document.documentElement.clientHeight;
                     var currentImg = this.$.onePictureDialog.getElementsByTagName('img')[0];
 
-                    var imgWidth = width > height ? currentImg.width/currentImg.height * height : width;
-                    var imgHeight = height > width ? currentImg.height/currentImg.width * width : height;
-
-                    this.$.onePictureDialog.style.width = imgWidth + "px";
-                    this.$.onePictureDialog.style.height = imgHeight + "px";
-
-                    currentImg.style.width = imgWidth - 57 + "px";
-                    currentImg.style.height = imgHeight - 148 + "px";
-
                     this.$.onePictureDialog.open();
+
+                    if(currentImg.width > width || currentImg.height > height)
+                    {
+                        currentImg.style.maxWidth = this.$.onePictureDialog.style.maxWidth;
+                        currentImg.style.maxHeight = this.$.onePictureDialog.style.maxHeight.replace('px', '') - 100 + "px";
+                    }
+
                   }
                   else
                     if(this.galleryMode)
