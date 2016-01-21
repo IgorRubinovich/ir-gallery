@@ -377,6 +377,13 @@
                     {
                         currentImg.style.maxWidth = this.$.onePictureDialog.style.maxWidth;
                         currentImg.style.maxHeight = this.$.onePictureDialog.style.maxHeight.replace('px', '') - 100 + "px";
+
+                        this.async(function () {
+
+                            this.$.onePictureDialog.center();
+
+                            Polymer.dom.flush();
+                        });
                     }
 
                   }
