@@ -1,0 +1,130 @@
+<!-- styling gallery -->
+
+<dom-module id="ir-gallery-style">
+	<template>
+		<style is="custom-style"> 
+
+			:host {
+				  display: block;
+			}
+
+		    #gallery-scroller {
+		        width : 900px;
+		        height : 580px;
+		    }     
+
+		    .scroller-image {
+		        height : 580px;
+		    }
+
+		    #inline-scroller {
+		        width : 667px;
+		        height : 500px;
+		    }
+
+		    .scroller-image[inline-style] {
+		        height : 500px;
+		    }
+
+		    #inline-thumbnails {
+		        width : 667px;
+		        height : 78px;
+		        padding-top : 10px;
+		    }
+
+		    #gallery-thumbnails {
+		        width : 900px;
+		        height : 78px;
+		        padding-top : 10px;
+		    }
+
+		    .scroller-items {
+		        display: -webkit-box;
+		        display : flex;
+
+		        -webkit-flex-direction: row;
+		        flex-direction : row;
+
+		        align-items: center;
+		        text-align: center;
+		    }
+
+		    .inline-item {
+		        margin-right : 10px;
+		        position: relative;
+		    }
+
+		    .scroller-item {
+		        margin-right : 10px;
+		        position: relative;
+		    }
+
+		    .thumbnail-items {
+		        display: -webkit-box;
+		        display : flex;
+
+		        -webkit-flex-direction: row;
+		        flex-direction : row;
+		    }
+
+		    .thumbnail-item {
+		        height : 62px;
+		        -webkit-flex-basis: auto;
+		        flex-basis  : auto;
+		        min-width : 60px;
+		        margin-right : 10px;
+		        position: relative;
+		    }
+
+		    iron-image.selected {
+		        display: block;
+		        content: " ";
+		        border-left: 16px solid transparent;
+		        border-right: 16px solid transparent;
+		    }
+
+		    paper-dialog { 
+		        border-style: solid;
+		        border-radius: 15px;
+		        border-color: rgba(0, 0, 0, 0.1);
+		        border-width: 4px;
+		        background-color: #f8f8f8;
+		        box-shadow: 0 0 0 0;
+		    }
+
+		    paper-dialog > * {
+		    	padding : 0;
+		    }
+
+		    .fullImg {
+		        max-width: 2000px;
+		        max-height: 2000px;
+		    }
+
+		    .caption {
+		        display: block;
+		        clear: left;
+		        text-align: center;
+		        font-size: 13px;
+		        color: #56646f;
+		        line-height: 1.4em;
+		        margin: 0 auto;
+		        background-color: #F2F2F2;
+		    }
+
+		    #navigationButtons {
+		        display: flex;
+		        justify-content: space-between;
+		    }
+
+		    #cancelB {
+		        float: right;
+		        margin: 0;
+		        margin-right: 12px;
+		        margin-bottom: 12px;
+		        color: grey;
+		    }
+
+		</style>
+	</template>
+</dom-module>
