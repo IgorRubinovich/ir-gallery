@@ -47,7 +47,7 @@
                 <template id="template" is="dom-repeat" items="{{ images }}">
                   <div class="thumbnail-item">
                     <paper-material elevation="0">
-                      <iron-image src="{{ item.image }}" style="width: 90px; height: 62px; padding: 2px 0;" data-iscroll-page$="{{ index }}" sizing="contain">
+                      <iron-image src="{{ item.image }}" style="width: 90px; height: 62px; padding: 2px 0;" data-iscroll-page$="{{ index }}" sizing="contain" on-tap="fireSelect">
                     <paper-material>
                   </div>
                 </template>
@@ -327,6 +327,11 @@
 
             swapImage : function(e) {
                 this.set('imgSrc', e.target.src);
+            },
+
+            fireSelect : function(e)
+            {
+                this.$['inline-thumbnails'].fire('tap', parseInt(Polymer.dom(e).localTarget.getAttribute('data-iscroll-page')));
             },
 
             setUpScroller : function(scrollerSelector, thumbnails, back, forward)
