@@ -38,8 +38,8 @@
           </rv-iscroll>
 
           <div id="navigationButtons">
-            <paper-icon-button id="iback" icon="arrow-back"></paper-icon-button>
-            <paper-icon-button id="iforward" icon="arrow-forward"></paper-icon-button>
+            <paper-icon-button id="iback" icon="arrow-back" on-tap="goBack"></paper-icon-button>
+            <paper-icon-button id="iforward" icon="arrow-forward" on-tap="goForward"></paper-icon-button>
           </div>
 
           <rv-iscroll id="inline-thumbnails" scroll-x iscroll-snap=".thumbnail-item">
@@ -47,7 +47,7 @@
                 <template id="template" is="dom-repeat" items="{{ images }}">
                   <div class="thumbnail-item">
                     <paper-material elevation="0">
-                      <iron-image src="{{ item.image }}" style="width: 90px; height: 62px; padding: 2px 0;" data-iscroll-page$="{{ index }}" sizing="contain" on-tap="fireSelect">
+                      <iron-image id="inline-img" src="{{ item.image }}" style="width: 90px; height: 62px; padding: 2px 0;" data-iscroll-page$="{{ index }}" sizing="contain" on-tap="selectInlineThumb">
                     <paper-material>
                   </div>
                 </template>
@@ -56,7 +56,7 @@
 
         </div>
 
-        <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller" on-iron-resize="resizeGallery" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+        <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller" on-iron-resize="resizeGallery" with-backdrop entry-animation="scale-up-animation" on-keydown="keyNav" exit-animation="fade-out-animation">
           <div>
 
             <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item">
@@ -71,8 +71,8 @@
             </rv-iscroll>
             
             <div id="navigationButtons">
-              <paper-icon-button id="back" icon="arrow-back"></paper-icon-button>
-              <paper-icon-button id="forward" icon="arrow-forward"></paper-icon-button>
+              <paper-icon-button id="back" icon="arrow-back" on-tap="goBack"></paper-icon-button>
+              <paper-icon-button id="forward" icon="arrow-forward" on-tap="goForward"></paper-icon-button>
             </div>
 
             <rv-iscroll id="gallery-thumbnails" scroll-x iscroll-snap=".thumbnail-item">
@@ -80,7 +80,7 @@
                   <template id="template" is="dom-repeat" items="{{ images }}">
                     <div class="thumbnail-item">
                       <paper-material elevation="0">
-                        <iron-image src="{{ item.image }}" style="width: 90px; height: 62px; padding: 2px 0;" data-iscroll-page$="{{ index }}" sizing="contain">
+                        <iron-image id="gallery-img" src="{{ item.image }}" style="width: 90px; height: 62px; padding: 2px 0;" data-iscroll-page$="{{ index }}" on-tap="selectGalleryThumb" sizing="contain">
                       </paper-material>
                     </div>
                   </template>
@@ -98,19 +98,19 @@
             is : 'ir-gallery',
 
             properties : {
-                images  : { type : Array, value : [] },
-                imgSrc : { type : String },
-                imgCaption : { type : String },
+                images  :           { type : Array, value : [] },
+                imgSrc :            { type : String },
+                imgCaption :        { type : String },
                 showDefaultImages : { type : Boolean, value : false },
-                isItFirstTime : { type : Boolean, value : false },
-                onePictureMode : { type : Boolean, value : false },
-                inlineMode : { type : Boolean, value : false },
-                galleryMode : { type : Boolean, value : false },
-                pageToSwap : { type : Number, value : 0 }    
+                isItFirstTime :     { type : Boolean, value : false },
+                onePictureMode :    { type : Boolean, value : false },
+                inlineMode :        { type : Boolean, value : false },
+                galleryMode :       { type : Boolean, value : false },
+                pageToSwap :        { type : Number, value : 0 } 
             },
 
+             ready : function() {
 
-            ready : function() {
                 var images = Polymer.dom(this).querySelectorAll('img'),
                     captions = Polymer.dom(this).querySelectorAll('span'),
                     arr = [];
@@ -186,7 +186,9 @@
                     if(this.inlineMode)
                     {
                       setTimeout(function() {
-                        this.setUpScroller('inline-scroller', 'inline-thumbnails', 'iback', 'iforward');
+                        this.$['inline-scroller'].scroll._init();
+                        this.selectThumbnail('inline-scroller', 'inline-thumbnails', 0);
+
                         this.$['inline-scroller'].scroll.refresh();
                         this.$['inline-thumbnails'].scroll.refresh();
                       }.bind(this), 200)
@@ -194,31 +196,110 @@
                 }      
             },
 
-            resizeGallery : function(e) {
-                if(e.currentTarget.id == 'gallery' && !this.isItFirstTime)
+            selectThumbnail : function(scrollerSelector, thumbnailsSelector, i) {
+              var iscroll = this.$[scrollerSelector].scroll,
+                  thumbnails = this.$[thumbnailsSelector];
+
+              var next = (typeof i != "undefined") ? i : (iscroll.currentPage.pageX || 0);
+
+              [].forEach.call(thumbnails.getElementsByTagName('iron-image'), function(el) {
+                  if(el.classList.contains('selected'))
+                  {
+                    el.classList.remove('selected');
+                    el.parentNode.elevation = 0;
+                  }
+              });
+
+              if(!thumbnails.getElementsByTagName('iron-image')[next])
+                return;
+
+              thumbnails.getElementsByTagName('iron-image')[next].classList.add('selected');
+              thumbnails.getElementsByTagName('iron-image')[next].parentNode.elevation = 3;
+            },
+
+            goToPage : function(scrollerSelector, i) {
+              var currentPage = i,
+                  iscroll = this.$[scrollerSelector].scroll;
+
+              if(typeof currentPage == 'undefined')
+                currentPage = iscroll.pages.pageX;
+
+              iscroll.goToPage(i, 0);
+            },
+
+            selectInlineThumb : function(e) {
+              if(typeof e == "number")
                 {
-                  this.$['gallery-scroller'].style.width = document.documentElement.clientWidth - 128 + "px";
-                  this.$['gallery-scroller'].style.height = document.documentElement.clientHeight / 1.5 + "px";
-                  this.$['gallery-thumbnails'].style.width = document.documentElement.clientWidth - 128 + "px";
-
-                  var imagesToResize = this.$['gallery-scroller'].getElementsByTagName('iron-image');
-                  for(var i = 0; i < imagesToResize.length; i++)
-                  {
-                    imagesToResize[i].style.width = document.documentElement.clientWidth - 128 + "px";
-                    imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 + "px";
-                  } 
-
-                  setTimeout(function() {
-                      this.$['gallery-scroller'].scroll.refresh();
-                      this.$['gallery-thumbnails'].scroll.refresh();
-                    }.bind(this), 200)
+                  this.pageToSwap = e;
+                  this.goToPage('inline-scroller', this.pageToSwap);
+                  this.selectThumbnail('inline-scroller', 'inline-thumbnails', this.pageToSwap);
                 }
-                else
-                  if(e.currentTarget.id == 'onePictureDialog' && !this.isItFirstTime)
+              else  
+                if(e.currentTarget.hasAttribute('data-iscroll-page'))
                   {
-                    
+                    this.pageToSwap = parseInt(Polymer.dom(e).localTarget.getAttribute('data-iscroll-page'));
+                    this.goToPage('inline-scroller', this.pageToSwap);
+                    this.selectThumbnail('inline-scroller', 'inline-thumbnails', this.pageToSwap);
                   }
             },
+
+            selectGalleryThumb : function(e) {
+              if(typeof e == "number")
+                {
+                  this.pageToSwap = e;
+                  this.goToPage('gallery-scroller', this.pageToSwap);
+                  this.selectThumbnail('gallery-scroller', 'gallery-thumbnails', this.pageToSwap);
+                }
+              else  
+                if(e.currentTarget.hasAttribute('data-iscroll-page'))
+                  {
+                    this.pageToSwap = parseInt(Polymer.dom(e).localTarget.getAttribute('data-iscroll-page'));
+                    this.goToPage('gallery-scroller', this.pageToSwap);
+                    this.selectThumbnail('gallery-scroller', 'gallery-thumbnails', this.pageToSwap);
+                  }
+            },
+
+            goBack : function(e) {
+
+              this.pageToSwap -= 1;
+                if(this.pageToSwap < 0)
+                  this.pageToSwap = this.images.length - 1;
+
+              if(e.currentTarget.getAttribute('id') == 'iback')
+              {
+                this.$['inline-thumbnails'].scroll.prev();
+                this.goToPage('inline-scroller', this.pageToSwap);
+                this.selectThumbnail('inline-scroller', 'inline-thumbnails', this.pageToSwap);
+              }
+              else
+              {
+                this.$['gallery-thumbnails'].scroll.prev();
+                this.goToPage('gallery-scroller', this.pageToSwap);
+                this.selectThumbnail('gallery-scroller', 'gallery-thumbnails', this.pageToSwap);
+              }
+
+            },
+
+            goForward : function(e) {
+
+              this.pageToSwap += 1;
+              if(this.pageToSwap > (this.images.length - 1))
+                this.pageToSwap = 0;
+
+              if(e.currentTarget.getAttribute('id') == 'iforward')
+              {
+                this.$['inline-thumbnails'].scroll.next();
+                this.goToPage('inline-scroller', this.pageToSwap);
+                this.selectThumbnail('inline-scroller', 'inline-thumbnails', this.pageToSwap);
+              }
+              else
+              {
+                this.$['gallery-thumbnails'].scroll.next();
+                this.goToPage('gallery-scroller', this.pageToSwap);
+                this.selectThumbnail('gallery-scroller', 'gallery-thumbnails', this.pageToSwap);
+              }
+
+            }, 
 
             showGallery : function(e) {
                 //this.images = Polymer.dom(this).querySelectorAll('img');
@@ -288,13 +369,16 @@
                       setTimeout(function () {
                           this.$["gallery-scroller"].scroll.refresh();
                           this.$["gallery-thumbnails"].scroll.refresh();
-                          this.$['gallery-thumbnails'].fire('tap', that.pageToSwap);
+                          this.selectGalleryThumb(this.pageToSwap);
+                          //this.$['gallery-thumbnails'].fire('tap', that.pageToSwap);
                       }.bind(this), 200); 
 
                       if(!this.scrollerSetupDone)
                         {
                           this.scrollerSetupDone = true;
-                          this.setUpScroller('gallery-scroller', 'gallery-thumbnails', 'back', 'forward');
+                          this.$['gallery-scroller'].scroll._init();
+
+                          this.selectThumbnail('gallery-scroller', 'gallery-thumbnails', 0);
                         }
 
                     }
@@ -315,7 +399,7 @@
                 setTimeout(function () {
                         this.$["inline-scroller"].scroll.refresh();
                         this.$["inline-thumbnails"].scroll.refresh();
-                        this.$['inline-thumbnails'].fire('tap', that.pageToSwap); 
+                        this.selectInlineThumb(this.pageToSwap); 
                     }.bind(this), 200);         
 
                 //this.setUpScroller('inline-scroller', 'inline-thumbnails');
@@ -329,147 +413,50 @@
                 this.set('imgSrc', e.target.src);
             },
 
-            fireSelect : function(e)
-            {
-                this.$['inline-thumbnails'].fire('tap', parseInt(Polymer.dom(e).localTarget.getAttribute('data-iscroll-page')));
-            },
+            resizeGallery : function(e) {
 
-            setUpScroller : function(scrollerSelector, thumbnails, back, forward)
-            {
+              if(e.currentTarget.id == 'gallery' && !this.isItFirstTime)
+              {
+                this.$['gallery-scroller'].style.width = document.documentElement.clientWidth - 128 + "px";
+                this.$['gallery-scroller'].style.height = document.documentElement.clientHeight / 1.5 + "px";
+                this.$['gallery-thumbnails'].style.width = document.documentElement.clientWidth - 128 + "px";
 
-                var el = this.$[scrollerSelector],
-                  iscroll,  thumbnails, autoScroll, currentPage;
-
-                if(!el)
-                  return;
-                var that = this;
-
-                if(!el.scroll)
+                var imagesToResize = this.$['gallery-scroller'].getElementsByTagName('iron-image');
+                for(var i = 0; i < imagesToResize.length; i++)
                 {
-                  setTimeout(function() {
-                      that.setUpScroller(scrollerSelector, thumbnails);
-                  },
-                  1000);
-                  return;
-                }
+                  imagesToResize[i].style.width = document.documentElement.clientWidth - 128 + "px";
+                  imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 + "px";
+                } 
 
-                iscroll = el.scroll,
-                thumbnails = this.$[thumbnails],
-                currentPage = 0;
-                iscroll.directionLockThreshold = 20;
-                iscroll._init();
-                iscroll.directionLockThreshold = 20;
-
-                if(!el || !thumbnails || !thumbnails.childNodes)
-                  return;
-
-                var goToPage = function(i) {
-                  currentPage = i;
-
-                  if(typeof currentPage == 'undefined')
-                    currentPage = iscroll.pages.pageX;
-
-                  iscroll.goToPage(i, 0);
-                }
-
-                var selectThumbnail = function(i) {
-                  var next = (typeof i != "undefined") ? i : (iscroll.currentPage.pageX || 0);
-                  
-                  [].forEach.call(thumbnails.getElementsByTagName('iron-image'), function(el) {
-                      if(el.classList.contains('selected'))
-                      {
-                        el.classList.remove('selected');
-                        el.parentNode.elevation = 0;
-                      }
-                  });
-
-                  if(!thumbnails.getElementsByTagName('iron-image')[next])
-                    return;
-                  
-                  thumbnails.getElementsByTagName('iron-image')[next].classList.add('selected');
-                  thumbnails.getElementsByTagName('iron-image')[next].parentNode.elevation = 3;
-
-                }
-
-                selectThumbnail(0);
-
-                el.addEventListener('tap', function(e) {
-                  selectThumbnail();
-                  autoScroll = false;
-                });
-                
-                iscroll.on("scrollEnd", function( event ) {
-                  selectThumbnail();
-                }, false);
-
-                iscroll.on("flick", function() {
-                  autoScroll = false;
-                });
-
-                thumbnails.addEventListener('tap', function(e) {
-                  if(Polymer.dom(e).localTarget.hasAttribute('data-iscroll-page'))
-                  {
-                    that.pageToSwap = parseInt(Polymer.dom(e).localTarget.getAttribute('data-iscroll-page'));
-                    goToPage(that.pageToSwap);
-                    selectThumbnail(that.pageToSwap);
-                    autoScroll = false;
-                  }
-                   else
-                    if(typeof e.detail == "number")
-                     {
-                       that.pageToSwap = e.detail;
-                       goToPage(that.pageToSwap);
-                       selectThumbnail(that.pageToSwap);
-                       autoScroll = false;
-                     }
-                });
-
-                this.$[back].addEventListener('tap', function(e) {
-                    that.pageToSwap -= 1;
-                    if(that.pageToSwap < 0)
-                      that.pageToSwap = that.images.length - 1;
-                    thumbnails.scroll.prev();
-                    goToPage(that.pageToSwap);
-                    selectThumbnail(that.pageToSwap);
-                    autoScroll = false;
-                });
-
-                this.$[forward].addEventListener('tap', function(e) {
-                    that.pageToSwap += 1;
-                    if(that.pageToSwap > (that.images.length - 1))
-                      that.pageToSwap = 0;
-                    thumbnails.scroll.next();
-                    goToPage(that.pageToSwap);
-                    selectThumbnail(that.pageToSwap);
-                    autoScroll = false;
-                });
-
-                if(this.scrollerSetupDone)
-                  this.$['gallery'].addEventListener('keydown', function(e) {
-                      if(e.keyCode == 37)
-                      {
-                        that.pageToSwap -= 1;
-                        if(that.pageToSwap < 0)
-                          that.pageToSwap = that.images.length - 1;
-                        thumbnails.scroll.prev();
-                        goToPage(that.pageToSwap);
-                        selectThumbnail(that.pageToSwap);
-                        autoScroll = false;
-                      }
-                      else
-                        if(e.keyCode == 39)
-                        {
-                          that.pageToSwap += 1;
-                          if(that.pageToSwap > (that.images.length - 1))
-                            that.pageToSwap = 0;
-                          thumbnails.scroll.next();
-                          goToPage(that.pageToSwap);
-                          selectThumbnail(that.pageToSwap);
-                          autoScroll = false;
-                        }
-                  });
+                setTimeout(function() {
+                    this.$['gallery-scroller'].scroll.refresh();
+                    this.$['gallery-thumbnails'].scroll.refresh();
+                  }.bind(this), 200)
+              }
 
             },
+
+            keyNav : function(e) {
+              if(e.keyCode == 37)
+              {
+                this.pageToSwap -= 1;
+                if(this.pageToSwap < 0)
+                  this.pageToSwap = this.images.length - 1;
+                this.$['gallery-thumbnails'].scroll.prev();
+                this.goToPage('gallery-scroller', this.pageToSwap);
+                this.selectGalleryThumb(this.pageToSwap);
+              }
+              else
+                if(e.keyCode == 39)
+                {
+                  this.pageToSwap += 1;
+                  if(this.pageToSwap > (this.images.length - 1))
+                    this.pageToSwap = 0;
+                  this.$['gallery-thumbnails'].scroll.next();
+                  this.goToPage('gallery-scroller', this.pageToSwap);
+                  this.selectGalleryThumb(this.pageToSwap);
+                }
+            },          
 
         })
     </script>
