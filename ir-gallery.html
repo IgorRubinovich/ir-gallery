@@ -26,7 +26,7 @@
 
         <div id="inline-gallery" hidden$="{{ !inlineMode }}">
 
-          <rv-iscroll id="inline-scroller" scroll-x iscroll-snap=".inline-item" on-scrollEnd="inlineScrollEnd">
+          <rv-iscroll id="inline-scroller" scroll-x iscroll-snap=".inline-item">
             <div class="scroller-items">
               <template id="template" is="dom-repeat" items="{{ images }}">
                 <div class="inline-item">
@@ -59,7 +59,7 @@
         <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller" on-iron-resize="resizeGallery" with-backdrop entry-animation="scale-up-animation" on-keydown="keyNav" exit-animation="fade-out-animation">
           <div>
 
-            <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item" on-scrollEnd="galleryScrollEnd">
+            <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item">
               <div class="scroller-items">
                 <template id="template" is="dom-repeat" items="{{ images }}">
                   <div class="scroller-item">
@@ -113,7 +113,7 @@
 
                 var images = Polymer.dom(this).querySelectorAll('img'),
                     captions = Polymer.dom(this).querySelectorAll('span'),
-                    arr = [];
+                    arr = [], that = this;
 
                 for(var i = 0; i < images.length; i++)
                 {
@@ -189,6 +189,10 @@
                         this.$['inline-scroller'].scroll._init();
                         this.selectThumbnail('inline-scroller', 'inline-thumbnails', 0);
 
+                        this.$['inline-scroller'].scroll.on('scrollEnd', function(event) {
+                          that.selectThumbnail('inline-scroller', 'inline-thumbnails');
+                        });
+
                         this.$['inline-scroller'].scroll.refresh();
                         this.$['inline-thumbnails'].scroll.refresh();
                       }.bind(this), 200)
@@ -225,14 +229,6 @@
                 currentPage = iscroll.pages.pageX;
 
               iscroll.goToPage(i, 0);
-            },
-
-            inlineScrollEnd : function() {
-                this.selectThumbnail('inline-scroller', 'inline-thumbnails');
-            },
-
-            galleryScrollEnd : function() {
-                this.selectThumbnail('gallery-scroller', 'gallery-thumbnails');
             },
 
             selectInlineThumb : function(e) {
@@ -387,6 +383,10 @@
                           this.$['gallery-scroller'].scroll._init();
 
                           this.selectThumbnail('gallery-scroller', 'gallery-thumbnails', 0);
+
+                          this.$['gallery-scroller'].scroll.on('scrollEnd', function(event) {
+                            that.selectThumbnail('gallery-scroller', 'gallery-thumbnails');
+                          });
                         }
 
                     }
