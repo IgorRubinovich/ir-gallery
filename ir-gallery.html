@@ -322,9 +322,7 @@
 
                   this.$['gallery-thumbnails'].style.width = document.documentElement.clientWidth - 128 + "px";
 
-
-                  var targetImg = e.target.src,
-                      i, that = this;
+                    var i, that = this;
 
                   this.isItFirstTime = true;
                   
@@ -334,7 +332,7 @@
 
                   if(this.onePictureMode)
                   {
-                    this.imgSrc = targetImg;
+                    this.imgSrc = this.images[0].image;
                     if(Polymer.dom(this).querySelector('span'))
                       this.imgCaption = Polymer.dom(this).querySelector('span').innerHTML;
 
