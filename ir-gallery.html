@@ -20,8 +20,8 @@
         <paper-dialog id="onePictureDialog" on-iron-resize="resizeGallery" entry-animation="scale-up-animation" with-backdrop exit-animation="fade-out-animation">
           <!--iron-image src="{{ imgSrc }}" class="scroller-image" sizing="contain"></iron-image-->
           <img class="fullImg" src="{{ imgSrc }}">
-          <span class="caption">{{ imgCaption }}</span>
-          <paper-icon-button id="cancelB" icon="cancel" on-click="closeDialog"></paper-icon-button>
+          <span class="caption"><ir-gallery-echo-html html="{{ imgCaption }}"></ir-gallery-echo-html></span>
+          <paper-icon-button class="cancelB" icon="cancel" on-click="closeDialog"></paper-icon-button>
         </paper-dialog>
 
         <div id="inline-gallery" hidden$="{{ !inlineMode }}">
@@ -31,7 +31,7 @@
               <template id="template" is="dom-repeat" items="{{ images }}">
                 <div class="inline-item">
                   <iron-image src="{{ item.image }}" inline-style$="{{ inlineMode }}" class="scroller-image"  sizing="contain" on-tap="showGallery"></iron-image>
-                  <span class="caption">{{ item.caption }}</span>
+                  <span class="caption"><ir-gallery-echo-html html="{{ item.caption }}"></ir-gallery-echo-html></span>
                 </div>
               </template>
             </div>
@@ -64,7 +64,7 @@
                 <template id="template" is="dom-repeat" items="{{ images }}">
                   <div class="scroller-item">
                     <iron-image src="{{ item.image }}" class="scroller-image" sizing="contain"></iron-image>
-                    <span class="caption">{{ item.caption }}</span>
+					<span class="caption"><ir-gallery-echo-html html="{{ item.caption }}"></ir-gallery-echo-html></span>
                   </div>
                 </template>
               </div>
@@ -88,7 +88,7 @@
             </rv-iscroll>  
 
           </div>
-          <paper-icon-button id="cancelB" icon="cancel" on-click="destroyScroller"></paper-icon-button>
+          <paper-icon-button class="cancelB" icon="cancel" on-click="destroyScroller"></paper-icon-button>
         </paper-dialog>
                 
     </template>
@@ -466,4 +466,30 @@
 
         })
     </script>
+</dom-module>
+
+
+<dom-module id="ir-gallery-echo-html">
+
+  <template>
+    <span id="content"></span>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'ir-gallery-echo-html',
+      properties: {
+          html: {
+              type: String,
+              value: 'html',
+			  observer : 'htmlChanged'
+          }
+      },
+      htmlChanged: function() {
+		this.$.content.innerHTML = this.html;
+          //this.innerHTML = this.html;
+      }
+    });
+  </script>
+
 </dom-module>
