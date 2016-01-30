@@ -314,11 +314,11 @@
                   for(var i = 0; i < imagesToResize.length; i++)
                   {
                     imagesToResize[i].style.width = document.documentElement.clientWidth - 128 + "px";
-                    imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 + "px";
+                    imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 - 15 + "px";
                   }
 
                   this.$['gallery-scroller'].style.width = document.documentElement.clientWidth - 128 + "px";
-                  this.$['gallery-scroller'].style.height = document.documentElement.clientHeight / 1.5 + 25 + "px";
+                  this.$['gallery-scroller'].style.height = document.documentElement.clientHeight / 1.5 - 15 + "px";
 
                   this.$['gallery-thumbnails'].style.width = document.documentElement.clientWidth - 128 + "px";
 
@@ -424,14 +424,14 @@
               if(e.currentTarget.id == 'gallery' && !this.isItFirstTime)
               {
                 this.$['gallery-scroller'].style.width = document.documentElement.clientWidth - 128 + "px";
-                this.$['gallery-scroller'].style.height = document.documentElement.clientHeight / 1.5 + 25 + "px";
+                this.$['gallery-scroller'].style.height = document.documentElement.clientHeight / 1.5 - 15 + "px";
                 this.$['gallery-thumbnails'].style.width = document.documentElement.clientWidth - 128 + "px";
 
                 var imagesToResize = this.$['gallery-scroller'].getElementsByTagName('iron-image');
                 for(var i = 0; i < imagesToResize.length; i++)
                 {
                   imagesToResize[i].style.width = document.documentElement.clientWidth - 128 + "px";
-                  imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 + "px";
+                  imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 - 15 + "px";
                 } 
 
                 setTimeout(function() {
