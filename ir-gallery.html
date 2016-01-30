@@ -340,8 +340,6 @@
                     var height = document.documentElement.clientHeight;
                     var currentImg = this.$.onePictureDialog.getElementsByTagName('img')[0];
 
-                    this.$.onePictureDialog.open();
-
                     if(currentImg.width > width || currentImg.height > height)
                     {
                         currentImg.style.maxWidth = this.$.onePictureDialog.style.maxWidth;
@@ -354,6 +352,8 @@
                             Polymer.dom.flush();
                         });
                     }
+
+                    this.$.onePictureDialog.open();
 
                   }
                   else
