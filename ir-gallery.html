@@ -339,9 +339,10 @@
                   if(this.onePictureMode)
                   {
                     this.imgSrc = this.images[0].image;
+
                     if(Polymer.dom(this).querySelector('span'))
                       this.imgCaption = Polymer.dom(this).querySelector('span').innerHTML;
-
+                    
                     var width = document.documentElement.clientWidth;
                     var height = document.documentElement.clientHeight;
                     var currentImg = this.$.onePictureDialog.getElementsByTagName('img')[0];
@@ -349,7 +350,7 @@
                     if(currentImg.width > width || currentImg.height > height)
                     {
                         //currentImg.style.width = document.documentElement.clientWidth - 128 + "px";
-                        currentImg.style.height = document.documentElement.clientHeight / 1.5 - 20 + "px";
+                        currentImg.style.maxHeight = this.$.onePictureDialog._fitHeight - 128 + "px";
 
                     }
 
