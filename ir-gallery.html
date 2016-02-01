@@ -161,8 +161,10 @@
                       });    
                     }                
 
-                    this.$['inline-scroller'].scroll.refresh();
-                    this.$['inline-thumbnails'].scroll.refresh();
+                    if(this.$['inline-scroller'].scroll)
+                      this.$['inline-scroller'].scroll.refresh();
+                    if(this.$['inline-thumbnails'].scroll)
+                      this.$['inline-thumbnails'].scroll.refresh();
 
                 }.bind(this), 200);
                 
@@ -193,8 +195,11 @@
                           that.selectThumbnail('inline-scroller', 'inline-thumbnails');
                         });
 
-                        this.$['inline-scroller'].scroll.refresh();
-                        this.$['inline-thumbnails'].scroll.refresh();
+                        if(this.$['inline-scroller'].scroll)
+                          this.$['inline-scroller'].scroll.refresh();
+                        if(this.$['inline-thumbnails'].scroll)
+                          this.$['inline-thumbnails'].scroll.refresh();
+
                       }.bind(this), 200)
                     }
                 }      
