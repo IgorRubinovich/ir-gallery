@@ -481,12 +481,12 @@
       properties: {
           html: {
               type: String,
-              value: 'html',
+              value: '',
 			  observer : 'htmlChanged'
           }
       },
       htmlChanged: function() {
-		this.$.content.innerHTML = this.html;
+		      this.$.content.innerHTML = this.html;
           //this.innerHTML = this.html;
       }
     });
