@@ -347,10 +347,10 @@
                     var height = document.documentElement.clientHeight;
                     var currentImg = this.$.onePictureDialog.getElementsByTagName('img')[0];
 
-                    if(currentImg.width > width || currentImg.height > height)
+                    if(currentImg.width > width || currentImg.height + 128 > height)
                     {
                         //currentImg.style.width = document.documentElement.clientWidth - 128 + "px";
-                        currentImg.style.maxHeight = this.$.onePictureDialog._fitHeight - 128 + "px";
+                        currentImg.style.maxHeight = this.$.onePictureDialog._fitHeight - 178 + "px";
 
                     }
 
