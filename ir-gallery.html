@@ -129,9 +129,12 @@
                 }
 
                 this.images = arr;
+   
+            },
 
+            attached : function() {
+                var that = this;
                 setTimeout(function() {
-                    var that = this;
                     if(this.parentNode)
                     {
                       var galleryParent = this.parentNode;
@@ -202,7 +205,7 @@
 
                       }.bind(this), 200)
                     }
-                }      
+                }   
             },
 
             selectThumbnail : function(scrollerSelector, thumbnailsSelector, i) {
