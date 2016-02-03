@@ -112,8 +112,14 @@
              ready : function() {
 
                 var images = Polymer.dom(this).querySelectorAll('img'),
-                    captions = Polymer.dom(this).querySelectorAll('span'),
+                    captions = {},
+                    childrens = Polymer.dom(this).children;
                     arr = [], that = this;
+
+                for(var k = 0; k < childrens.length; k++)
+                {
+                    captions[k] = childrens[k].getElementsByClassName('caption');
+                }    
 
                 for(var i = 0; i < images.length; i++)
                 {
