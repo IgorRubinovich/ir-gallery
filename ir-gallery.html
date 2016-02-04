@@ -126,12 +126,13 @@
                     arr[i] = { 'image' : images[i].src, 'caption' : '' };
                 }
 
-                for(var j = 0; j < captions.length; j++)
+                for(var c in captions)
                 {
-                  if(captions[j].parentNode.querySelector('img'))
-                    for(var k = 0; k < images.length; k++)
-                      if(arr[k].image == captions[j].parentNode.querySelector('img').src)
-                        arr[k].caption = captions[j].innerHTML; 
+                  if(captions[c][0])
+                    if(captions[c][0].parentNode.querySelector('img'))
+                      for(var k = 0; k < images.length; k++)
+                        if(arr[k].image == captions[c][0].parentNode.querySelector('img').src)
+                          arr[k].caption = captions[c][0].innerHTML; 
                 }
 
                 this.images = arr;
@@ -328,7 +329,7 @@
                   for(var i = 0; i < imagesToResize.length; i++)
                   {
                     imagesToResize[i].style.width = document.documentElement.clientWidth - 128 + "px";
-                    imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 - 20 + "px";
+                    imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 - 40 + "px";
                   }
 
                   this.$['gallery-scroller'].style.width = document.documentElement.clientWidth - 128 + "px";
@@ -349,8 +350,8 @@
                   {
                     this.imgSrc = this.images[0].image;
 
-                    if(Polymer.dom(this).querySelector('span'))
-                      this.imgCaption = Polymer.dom(this).querySelector('span').innerHTML;
+                    if(Polymer.dom(this).children[0])
+                      this.imgCaption = Polymer.dom(this).children[0].getElementsByClassName('caption')[0].innerHTML
                     
                     var width = document.documentElement.clientWidth;
                     var height = document.documentElement.clientHeight;
@@ -442,7 +443,7 @@
                 for(var i = 0; i < imagesToResize.length; i++)
                 {
                   imagesToResize[i].style.width = document.documentElement.clientWidth - 128 + "px";
-                  imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 - 20 + "px";
+                  imagesToResize[i].style.height = document.documentElement.clientHeight / 1.5 - 40 + "px";
                 } 
 
                 setTimeout(function() {
