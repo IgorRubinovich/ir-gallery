@@ -13,7 +13,7 @@
 
         <style is="custom-style" include="ir-gallery-style"></style>
           
-        <span on-tap="showGallery" hidden$="{{ !showDefaultImages }}">
+        <span on-tap="showGallery" class="mousePoint" hidden$="{{ !showDefaultImages }}">
             <content></content>
         </span>
         
@@ -351,7 +351,8 @@
                     this.imgSrc = this.images[0].image;
 
                     if(Polymer.dom(this).children[0])
-                      this.imgCaption = Polymer.dom(this).children[0].getElementsByClassName('caption')[0].innerHTML
+                      if(Polymer.dom(this).children[0].getElementsByClassName('caption')[0])
+                        this.imgCaption = Polymer.dom(this).children[0].getElementsByClassName('caption')[0].innerHTML;
                     
                     var width = document.documentElement.clientWidth;
                     var height = document.documentElement.clientHeight;
