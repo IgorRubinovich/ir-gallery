@@ -146,9 +146,11 @@
                     {
                       var galleryParent = this.parentNode;
 
-                      if(galleryParent.getBoundingClientRect().width == 0)
-                        while(galleryParent.getBoundingClientRect().width == 0 && galleryParent.parentNode)
-                            galleryParent = galleryParent.parentNode;
+                      while(galleryParent && (!galleryParent.getBoundingClientRect || galleryParent.getBoundingClientRect().width == 0))
+                          galleryParent = galleryParent.parentNode;
+
+                      if(!galleryParent)
+                        return;  
 
                       this.$['inline-gallery'].style.width = this.$['inline-scroller'].style.width = this.$['inline-thumbnails'].style.width = galleryParent.getBoundingClientRect().width + "px";
                       var imagesToResize = this.$['inline-scroller'].getElementsByTagName('iron-image');
