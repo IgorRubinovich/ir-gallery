@@ -1,6 +1,6 @@
 # ir-gallery
 
-** A simple gallery with 3 types of workmodes and support for templates.
+**A simple gallery with 3 types of workmodes and support for templates.**
 
 ### Features
 
