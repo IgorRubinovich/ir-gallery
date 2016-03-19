@@ -9,64 +9,6 @@
 <link rel="import" href="../paper-menu/paper-menu.html">
 <link rel="import" href="ir-gallery-style.html">
 
-<ir-gallery-theme name="default"> 
-    <template inline> 
-    <style></style> 
-    <div class="main"></div> 
-    <div class="scroller"></div> 
-    </template> 
-    <template dialog> 
-    <div id="galleryBlock"> 
-    <div class="dmain"></div> 
-    <div class="dscroller"></div> 
-    <paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
-    </div> 
-    </template>
-  </ir-gallery-theme> 
-  <ir-gallery-theme name="vinegret"> 
-    <template inline> 
-    <style> .main p { color : red; }</style> 
-    <div class="main"></div> 
-    <div><p>inline advertising</p></div> 
-    <div class="scroller"></div> 
-    </template> 
-    <template dialog> 
-    <style> .dmain p { color : red; } #galleryBlock { border-style: solid; border-radius: 8px; border-color: #767676; border-width: 4px; background-color: #F8F8F8; box-shadow: 0 0 0 0; padding : 10px;}</style> 
-    <div id="galleryBlock"> 
-    <div class="dmain"></div> 
-    <div><p>dialog advertising</p></div> 
-    <div class="dscroller"></div> 
-    <paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
-    </div> 
-    </template>
-  </ir-gallery-theme>
-  <ir-gallery-theme name="blackfriday"> 
-    <template inline> 
-    <style> .main p { color : red; }</style> 
-    <div class="main"></div> 
-    <div><p>inline advertising</p></div> 
-    <div class="scroller"></div> 
-    </template> 
-    <template dialog> 
-    <style> .dmain p { color : red; } #galleryBlock { background-color: #000000; box-shadow: 0 0 0 0; padding: 10px;}
-    #cancelButton { color: white; } #back { color: white; } #forward { color: white; }
-    #dialogChild { margin : 0; padding: 0; }
-    </style> 
-    <div id="galleryBlock"> 
-    <div class="dmain"></div> 
-    <div style="margin: auto; width: 600px;">
-      <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-      <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-      <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-      <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-      <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-      <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-    </div> 
-    <div class="dscroller"></div> 
-    <paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
-    </div> 
-    </template>
-  </ir-gallery-theme>
 
 <dom-module id="ir-gallery">
   
@@ -74,7 +16,7 @@
 
         <style is="custom-style" include="ir-gallery-style"></style>
         
-        <paper-icon-button icon="build" on-tap="showSetupMenu"></paper-icon-button>
+        <!-- paper-icon-button icon="build" on-tap="showSetupMenu"></paper-icon-button -->
           
         <span id="contentImages" on-tap="showGallery" hidden$="{{ !showDefaultImages }}">
             <content id="galleryContent"></content>
@@ -225,7 +167,7 @@
 
 </dom-module>
 
-<dom-module is="ir-gallery-theme">
+<dom-module id="ir-gallery-theme">
 <template>
   <content id="templates"></content>
 </template>
@@ -762,4 +704,84 @@
 
         });
 })();        
-    </script>
+</script>
+	
+
+
+<dom-module id="ir-gallery-theme-defaults">
+	<template>
+		<ir-gallery-theme name="default"> 
+			<template inline> 
+				<style></style> 
+				<div class="main"></div> 
+				<div class="scroller"></div> 
+			</template> 
+			<template dialog> 
+				<div id="galleryBlock"> 
+					<div class="dmain"></div> 
+					<div class="dscroller"></div> 
+					<paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
+				</div> 
+			</template>
+		</ir-gallery-theme> 
+		<ir-gallery-theme name="vinegret"> 
+			<template inline> 
+				<style> .main p { color : red; }</style> 
+				<div class="main"></div> 
+				<div><p>inline advertising</p></div> 
+				<div class="scroller"></div> 
+			</template> 
+			<template dialog> 
+				<style> .dmain p { color : red; } #galleryBlock { border-style: solid; border-radius: 8px; border-color: #767676; border-width: 4px; background-color: #F8F8F8; box-shadow: 0 0 0 0; padding : 10px;}</style> 
+				<div id="galleryBlock"> 
+					<div class="dmain"></div> 
+					<div><p>dialog advertising</p></div> 
+					<div class="dscroller"></div> 
+					<paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
+				</div> 
+			</template>
+		</ir-gallery-theme>
+		<ir-gallery-theme name="blackfriday"> 
+			<template inline> 
+				<style> .main p { color : red; }</style> 
+				<div class="main"></div> 
+				<div><p>inline advertising</p></div> 
+				<div class="scroller"></div> 
+			</template> 
+			<template dialog> 
+				<style> 
+					.dmain p { color : red; } #galleryBlock { background-color: #000000; box-shadow: 0 0 0 0; padding: 10px;}
+					#cancelButton { color: white; } #back { color: white; } #forward { color: white; }
+					#dialogChild { margin : 0; padding: 0; }
+				</style> 
+				<div id="galleryBlock"> 
+					<div class="dmain"></div> 
+					<div style="margin: auto; width: 600px;">
+						<img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
+						<img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
+						<img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
+						<img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
+						<img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
+						<img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
+					</div> 
+					<div class="dscroller"></div> 
+					<paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
+				</div> 
+			</template>
+		</ir-gallery-theme>
+	</template>
+</dom-module>
+
+
+<script>
+(function() {
+  Polymer({
+		is : "ir-gallery-theme-defaults",
+		attached : function(e) {
+			console.log('attached default themes');
+		}
+	})
+	//console.log('hello')
+	document.body.appendChild(document.createElement("ir-gallery-theme-defaults"));
+})();
+</script>
