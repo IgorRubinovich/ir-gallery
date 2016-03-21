@@ -222,7 +222,6 @@
                 pageToSwap :        { type : Number, value : 0 },
                 theme :             { type : String, notify : true },
                 nameThemes :        { type : Array, value : [] },
-                themeList :         { type : Object, value : {} },
                 themeSelected :     { type : String, value : "default"} 
             },
 
@@ -236,11 +235,11 @@
 
                 document.addEventListener('template-ready', function(e){
 
-                  that.themeList[e.detail.name] = { inline : e.detail.inline, dialog : e.detail.dialog };
+                  themes[e.detail.name] = { inline : e.detail.inline, dialog : e.detail.dialog };
 
                   var state = 0;
 
-                  for(var f in that.themeList)
+                  for(var f in themes)
                   {
                     state = 0;
 
@@ -296,7 +295,7 @@
                   this.$.preview.innerHTML = '';
 
               this.setAttribute('theme', this.themeSelected);
-              this.setupTemplate(this.themeList[this.theme].inline, this.themeList[this.theme].dialog, true);
+              this.setupTemplate(themes[this.theme].inline, themes[this.theme].dialog, true);
               this.$.setupMenu.close();
             },
 
@@ -309,6 +308,7 @@
             },
 
             setup : function() {
+              console.log(themes);
               this.swapPreview();
               this.$.setupMenu.open();
             },
