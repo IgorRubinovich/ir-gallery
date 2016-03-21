@@ -203,6 +203,7 @@
             if(templates[i].hasAttribute('dialog'))
               dialogTemplate = templates[i];   
 
+      themes[this.name] = { inline : e.detail.inline, dialog : e.detail.dialog };
       this.fire('template-ready', { inline : inlineTemplate, dialog : dialogTemplate, name : this.name });
     }
   });
@@ -235,7 +236,8 @@
 
                 document.addEventListener('template-ready', function(e){
 
-                  themes[e.detail.name] = { inline : e.detail.inline, dialog : e.detail.dialog };
+                  if(!themes[e.detail.name])
+                    themes[e.detail.name] = { inline : e.detail.inline, dialog : e.detail.dialog };
 
                   var state = 0;
 
