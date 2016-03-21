@@ -675,8 +675,10 @@
                 } 
 
                 setTimeout(function() {
-                    this.$['gallery-scroller'].scroll.refresh();
-                    this.$['gallery-thumbnails'].scroll.refresh();
+                    if(this.$['gallery-scroller'].scroll)
+                      this.$['gallery-scroller'].scroll.refresh();
+                    if(this.$['gallery-thumbnails'].scroll)
+                      this.$['gallery-thumbnails'].scroll.refresh();
                   }.bind(this), 200)
               }
 
