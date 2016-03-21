@@ -203,7 +203,7 @@
             if(templates[i].hasAttribute('dialog'))
               dialogTemplate = templates[i];   
 
-      themes[this.name] = { inline : e.detail.inline, dialog : e.detail.dialog };
+      themes[this.name] = { inline : inlineTemplate, dialog : dialogTemplate };
       this.fire('template-ready', { inline : inlineTemplate, dialog : dialogTemplate, name : this.name });
     }
   });
