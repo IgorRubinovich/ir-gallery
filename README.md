@@ -84,6 +84,9 @@ using gallery as you want. You can config all this stuff by your own templates.
 	    </template>
   </ir-gallery-theme>
 
+# WARNING
+## DO NOT SET THE SAME ID NAMES IN DIFFERENT TEMPLATES
+
 ## State
 
 It's still in the development stage

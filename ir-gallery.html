@@ -14,129 +14,136 @@
   
     <template>
 
-        <style is="custom-style" include="ir-gallery-style"></style>
-        
-        <!-- paper-icon-button icon="build" on-tap="showSetupMenu"></paper-icon-button -->
+        <div id="galleryContainer">
+          <style is="custom-style" include="ir-gallery-style"></style>
           
-        <span id="contentImages" on-tap="showGallery" hidden$="{{ !showDefaultImages }}">
-            <content id="galleryContent"></content>
-        </span>
+          <!-- paper-icon-button icon="build" on-tap="showSetupMenu"></paper-icon-button -->
+            
+          <span id="contentImages" on-tap="showGallery" hidden$="{{ !showDefaultImages }}">
+              <content id="galleryContent"></content>
+          </span>
 
-        <div id="inlineChild">
-
-        </div>
-
-        <paper-dialog id="setupMenu" with-backdrop>
-        <div>
-          <h3 style="color: #3F51B5;">CHOOSE STYLE</h3>
-          <!--paper-radio-group selected="{{ themeSelected }}" attr-for-selected="name" selected-class="selectedStyle">
-            <paper-radio-button name="default"><iron-image style="width:400px; height:400px;" sizing="contain" src="/media/theme1.png"></iron-image><p>Default</p></paper-radio-button>
-            <paper-radio-button name="blackfriday"><iron-image style="width:400px; height:400px;" sizing="contain" src="/media/theme1.png"></iron-image><p>BlackFriday</p></paper-radio-button>
-            <paper-radio-button name="bluesky"><iron-image style="width:400px; height:400px;" sizing="contain" src="/media/theme1.png"></iron-image><p>BlueSky</p></paper-radio-button>
-          </paper-radio-group-->
-          <div style="display: flex;">
-            <paper-menu id="themeMenu" selected="{{ themeSelected }}" attr-for-selected="name">
-            <template is="dom-repeat" items="{{ nameThemes }}">
-              <paper-item name$="{{ item }}" style="text-transform: uppercase;" on-click="swapPreview">{{ item }}</paper-item>
-            </template>
-            </paper-menu>
-            <div id="themePreview">
-              <div id="preview">
-              </div>
-            </div>
-          </div>
-          <div style="margin-top: 20px;">
-            <paper-button raised on-click="swapTheme">OK</paper-button>
-            <paper-button raised on-click="closeMenu">CANCEL</paper-button>
-          </div>  
-        </div>
-        </paper-dialog>
-
-        <paper-dialog id="onePictureDialog" on-iron-resize="resizeGallery" entry-animation="scale-up-animation" with-backdrop exit-animation="fade-out-animation">
-          <!--iron-image src="{{ imgSrc }}" class="scroller-image" sizing="contain"></iron-image-->
-          <img class="fullImg" src="{{ imgSrc }}">
-          <span class="caption"><ir-gallery-echo-html html="{{ imgCaption }}"></ir-gallery-echo-html></span>
-          <paper-icon-button class="cancelB" icon="cancel" on-click="closeDialog"></paper-icon-button>
-        </paper-dialog>
-
-        <div id="inline-gallery" hidden$="{{ !inlineMode }}">
-
-          <div id="inline-main">
-
-            <rv-iscroll id="inline-scroller" scroll-x iscroll-snap=".inline-item">
-              <div class="scroller-items">
-                <template id="template" is="dom-repeat" items="{{ images }}">
-                  <div class="inline-item">
-                    <iron-image src="{{ item.image }}" inline-style$="{{ inlineMode }}" class="scroller-image"  sizing="contain" on-tap="showGallery"></iron-image>
-                    <span class="caption"><ir-gallery-echo-html html="{{ item.caption }}"></ir-gallery-echo-html></span>
-                  </div>
-                </template>
-              </div>
-            </rv-iscroll>
-
-            <div id="navigationButtons">
-              <paper-icon-button id="iback" icon="arrow-back" on-tap="goBack"></paper-icon-button>
-              <paper-icon-button id="iforward" icon="arrow-forward" on-tap="goForward"></paper-icon-button>
-            </div>
+          <div id="inlineChild">
 
           </div>
 
-          <rv-iscroll id="inline-thumbnails" scroll-x iscroll-snap=".thumbnail-item">
-            <div class="thumbnail-items">
-                <template id="template" is="dom-repeat" items="{{ images }}">
-                  <div class="thumbnail-item">
-                    <paper-material elevation="0">
-                      <iron-image id="inline-img" src="{{ item.image }}" style="width: 90px; height: 62px; padding: 2px 0;" data-iscroll-page$="{{ index }}" sizing="contain" on-tap="selectInlineThumb">
-                    <paper-material>
-                  </div>
-                </template>
-            </div>
-          </rv-iscroll>
-
-        </div>
-
-        <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller" on-iron-resize="resizeGallery" with-backdrop entry-animation="scale-up-animation" on-keydown="keyNav" exit-animation="fade-out-animation">
-          <div id="dialogChild">
-
-          </div>
-          
+          <paper-dialog id="setupMenu" with-backdrop>
           <div>
+            <h3 style="color: #3F51B5;">CHOOSE STYLE</h3>
+            <!--paper-radio-group selected="{{ themeSelected }}" attr-for-selected="name" selected-class="selectedStyle">
+              <paper-radio-button name="default"><iron-image style="width:400px; height:400px;" sizing="contain" src="/media/theme1.png"></iron-image><p>Default</p></paper-radio-button>
+              <paper-radio-button name="blackfriday"><iron-image style="width:400px; height:400px;" sizing="contain" src="/media/theme1.png"></iron-image><p>BlackFriday</p></paper-radio-button>
+              <paper-radio-button name="bluesky"><iron-image style="width:400px; height:400px;" sizing="contain" src="/media/theme1.png"></iron-image><p>BlueSky</p></paper-radio-button>
+            </paper-radio-group-->
+            <div style="display: flex;">
+              <paper-menu id="themeMenu" selected="{{ themeSelected }}" attr-for-selected="name">
+              <template is="dom-repeat" items="{{ nameThemes }}">
+                <paper-item name$="{{ item }}" style="text-transform: uppercase;" on-click="swapPreview">{{ item }}</paper-item>
+              </template>
+              </paper-menu>
+              <div id="themePreview">
+                <div id="preview">
+                </div>
+              </div>
+            </div>
+            <div style="margin-top: 20px;">
+              <paper-button raised on-click="swapTheme">OK</paper-button>
+              <paper-button raised on-click="closeMenu">CANCEL</paper-button>
+            </div>  
+          </div>
+          </paper-dialog>
 
-            <div id="gallery-main">
-              <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item">
+          <paper-dialog id="onePictureDialog" on-iron-resize="resizeGallery" entry-animation="scale-up-animation" with-backdrop exit-animation="fade-out-animation">
+            <!--iron-image src="{{ imgSrc }}" class="scroller-image" sizing="contain"></iron-image-->
+            <div id="pictureTemplate">
+
+            </div>
+
+            <div id="bigPicture">
+              <img class="fullImg" src="{{ imgSrc }}">
+              <span class="caption"><ir-gallery-echo-html html="{{ imgCaption }}"></ir-gallery-echo-html></span>
+            </div>
+            <!--paper-icon-button class="cancelB" icon="cancel" on-click="closeDialog"></paper-icon-button-->
+          </paper-dialog>
+
+          <div id="inline-gallery" hidden$="{{ !inlineMode }}">
+
+            <div id="inline-main">
+
+              <rv-iscroll id="inline-scroller" scroll-x iscroll-snap=".inline-item">
                 <div class="scroller-items">
                   <template id="template" is="dom-repeat" items="{{ images }}">
-                    <div class="scroller-item">
-                      <iron-image src="{{ item.image }}" class="scroller-image" sizing="contain"></iron-image>
-  					          <span class="caption"><ir-gallery-echo-html html="{{ item.caption }}"></ir-gallery-echo-html></span>
+                    <div class="inline-item">
+                      <iron-image src="{{ item.image }}" inline-style$="{{ inlineMode }}" class="scroller-image"  sizing="contain" on-tap="showGallery"></iron-image>
+                      <span class="caption"><ir-gallery-echo-html html="{{ item.caption }}"></ir-gallery-echo-html></span>
                     </div>
                   </template>
                 </div>
               </rv-iscroll>
-              
+
               <div id="navigationButtons">
-                <paper-icon-button id="back" icon="arrow-back" on-tap="goBack"></paper-icon-button>
-                <paper-icon-button id="forward" icon="arrow-forward" on-tap="goForward"></paper-icon-button>
+                <paper-icon-button id="iback" icon="arrow-back" on-tap="goBack"></paper-icon-button>
+                <paper-icon-button id="iforward" icon="arrow-forward" on-tap="goForward"></paper-icon-button>
               </div>
+
             </div>
 
-            <rv-iscroll id="gallery-thumbnails" scroll-x iscroll-snap=".thumbnail-item">
+            <rv-iscroll id="inline-thumbnails" scroll-x iscroll-snap=".thumbnail-item">
               <div class="thumbnail-items">
                   <template id="template" is="dom-repeat" items="{{ images }}">
                     <div class="thumbnail-item">
                       <paper-material elevation="0">
-                        <iron-image id="gallery-img" src="{{ item.image }}" style="width: 90px; height: 62px; padding: 2px 0;" data-iscroll-page$="{{ index }}" on-tap="selectGalleryThumb" sizing="contain">
-                      </paper-material>
+                        <iron-image id="inline-img" src="{{ item.image }}" style="width: 90px; height: 62px; padding: 2px 0;" data-iscroll-page$="{{ index }}" sizing="contain" on-tap="selectInlineThumb">
+                      <paper-material>
                     </div>
                   </template>
               </div>
-            </rv-iscroll>  
+            </rv-iscroll>
 
           </div>
 
-          <!--paper-icon-button class="cancelB" icon="cancel" on-click="destroyScroller"></paper-icon-button-->
-        </paper-dialog>
+          <paper-dialog id="gallery" on-iron-overlay-closed="destroyScroller" on-iron-resize="resizeGallery" with-backdrop entry-animation="scale-up-animation" on-keydown="keyNav" exit-animation="fade-out-animation">
+            <div id="dialogChild">
 
+            </div>
+            
+            <div>
+
+              <div id="gallery-main">
+                <rv-iscroll id="gallery-scroller" scroll-x iscroll-snap=".scroller-item">
+                  <div class="scroller-items">
+                    <template id="template" is="dom-repeat" items="{{ images }}">
+                      <div class="scroller-item">
+                        <iron-image src="{{ item.image }}" class="scroller-image" sizing="contain"></iron-image>
+    					          <span class="caption"><ir-gallery-echo-html html="{{ item.caption }}"></ir-gallery-echo-html></span>
+                      </div>
+                    </template>
+                  </div>
+                </rv-iscroll>
+                
+                <div id="navigationButtons">
+                  <paper-icon-button id="back" icon="arrow-back" on-tap="goBack"></paper-icon-button>
+                  <paper-icon-button id="forward" icon="arrow-forward" on-tap="goForward"></paper-icon-button>
+                </div>
+              </div>
+
+              <rv-iscroll id="gallery-thumbnails" scroll-x iscroll-snap=".thumbnail-item">
+                <div class="thumbnail-items">
+                    <template id="template" is="dom-repeat" items="{{ images }}">
+                      <div class="thumbnail-item">
+                        <paper-material elevation="0">
+                          <iron-image id="gallery-img" src="{{ item.image }}" style="width: 90px; height: 62px; padding: 2px 0;" data-iscroll-page$="{{ index }}" on-tap="selectGalleryThumb" sizing="contain">
+                        </paper-material>
+                      </div>
+                    </template>
+                </div>
+              </rv-iscroll>  
+
+            </div>
+
+            <!--paper-icon-button class="cancelB" icon="cancel" on-click="destroyScroller"></paper-icon-button-->
+          </paper-dialog>
+      </div>
     </template>
 
 </dom-module>
@@ -203,7 +210,11 @@
             if(templates[i].hasAttribute('dialog'))
               dialogTemplate = templates[i];   
 
+      inlineTemplate.className = "";
+      dialogTemplate.className = "";
+
       themes[this.name] = { inline : inlineTemplate, dialog : dialogTemplate };
+
       this.fire('template-ready', { inline : inlineTemplate, dialog : dialogTemplate, name : this.name });
     }
   });
@@ -233,21 +244,6 @@
              ready : function() {
 
                 var that = this;
-
-                document.addEventListener('template-ready', function(e){
-
-                  if(!themes[e.detail.name])
-                    themes[e.detail.name] = { inline : e.detail.inline, dialog : e.detail.dialog };            
-
-                  if(e.detail.name == that.theme)
-                  {
-                    var inlineTemplate = e.detail.inline,
-                        dialogTemplate = e.detail.dialog;
-
-                    that.setupTemplate(inlineTemplate, dialogTemplate);
-                  }
-                  
-                });
 
                 var images = Polymer.dom(this).querySelectorAll('img'),
                     captions = {},
@@ -327,11 +323,32 @@
                   inlineThumb = this.$['inline-thumbnails'],
                   galleryMain = this.$['gallery-main'], 
                   galleryThumb = this.$['gallery-thumbnails'];
+                  onePicture = this.$.bigPicture;
 
               if(swap)
               {
                 this.$.inlineChild.innerHTML = "";
                 this.$.dialogChild.innerHTML = "";
+                this.$.pictureTemplate.innerHTML = "";
+              }
+
+              if(this.onePictureMode)
+              {
+                  this.templatize(dtemplate)
+                  var oclone = this.stamp(this.commands);
+
+                  oclone.templateItem = dtemplate;
+                  Polymer.dom(this.$.pictureTemplate).appendChild(oclone.root);
+
+                  if(this.querySelector('.dmain'))
+                    this.querySelector('.dmain').appendChild(onePicture);
+
+                  if(this.querySelector('#cancelButton'))
+                    this.querySelector('#cancelButton').addEventListener('click', function(e) {
+                        that.closeDialog();
+                    }); 
+
+                  return;
               }
 
               this.templatize(itemplate);
@@ -361,12 +378,14 @@
               
               if(this.querySelector('#cancelButton'))
                 this.querySelector('#cancelButton').addEventListener('click', function(e) {
-                  that.destroyScroller();
+                    that.destroyScroller();
                 }); 
             },
 
             attached : function() {
-                var that = this;
+                var that = this,
+                    state = 0;
+
                 setTimeout(function() {
                     if(this.parentNode)
                     {
@@ -441,6 +460,31 @@
                       }.bind(this), 200)
                     }
                 }   
+
+                if(!this.theme)
+                {
+                  this.theme = "default";
+                  this.setAttribute('theme', 'default');
+                }                
+
+                if(themes[this.theme]) 
+                {
+                  this.setupTemplate(themes[this.theme].inline, themes[this.theme].dialog);
+                  state = 1;
+                }                   
+
+                document.addEventListener('template-ready', function(e){           
+
+                  if(e.detail.name == that.theme)
+                  {
+                    var inlineTemplate = e.detail.inline,
+                        dialogTemplate = e.detail.dialog;
+
+                    if(state == 0)
+                      that.setupTemplate(inlineTemplate, dialogTemplate);
+                  }
+                  
+                });
             },
 
             selectThumbnail : function(scrollerSelector, thumbnailsSelector, i) {
@@ -715,65 +759,70 @@
 
 <dom-module id="ir-gallery-theme-defaults">
 	<template>
-		<ir-gallery-theme name="default"> 
-			<template inline> 
-				<style></style> 
-				<div class="main"></div> 
-				<div class="scroller"></div> 
-			</template> 
-			<template dialog> 
-				<div id="galleryBlock"> 
-					<div class="dmain"></div> 
-					<div class="dscroller"></div> 
-					<paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
-				</div> 
-			</template>
-		</ir-gallery-theme> 
-		<ir-gallery-theme name="vinegret"> 
-			<template inline> 
-				<style> .main p { color : red; }</style> 
-				<div class="main"></div> 
-				<div><p>inline advertising</p></div> 
-				<div class="scroller"></div> 
-			</template> 
-			<template dialog> 
-				<style> .dmain p { color : red; } #galleryBlock { border-style: solid; border-radius: 8px; border-color: #767676; border-width: 4px; background-color: #F8F8F8; box-shadow: 0 0 0 0; padding : 10px;}</style> 
-				<div id="galleryBlock"> 
-					<div class="dmain"></div> 
-					<div><p>dialog advertising</p></div> 
-					<div class="dscroller"></div> 
-					<paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
-				</div> 
-			</template>
-		</ir-gallery-theme>
-		<ir-gallery-theme name="blackfriday"> 
-			<template inline> 
-				<style> .main p { color : red; }</style> 
-				<div class="main"></div> 
-				<div><p>inline advertising</p></div> 
-				<div class="scroller"></div> 
-			</template> 
-			<template dialog> 
-				<style> 
-					.dmain p { color : red; } #galleryBlock { background-color: #000000; box-shadow: 0 0 0 0; padding: 10px;}
-					#cancelButton { color: white; } #back { color: white; } #forward { color: white; }
-					#dialogChild { margin : 0; padding: 0; }
-				</style> 
-				<div id="galleryBlock"> 
-					<div class="dmain"></div> 
-					<div style="margin: auto; width: 600px;">
-						<img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-						<img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-						<img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-						<img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-						<img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-						<img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-					</div> 
-					<div class="dscroller"></div> 
-					<paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
-				</div> 
-			</template>
-		</ir-gallery-theme>
+
+    <textarea style="display : none;">
+      <ir-gallery-theme name="default"> 
+        <template inline> 
+          <style> .main p { color : red; }</style> 
+          <div class="main"></div> 
+          <div><p>inline advertising</p></div> 
+          <div class="scroller"></div> 
+        </template> 
+        <template dialog> 
+          <style>.dmain p { color : red; }  #defaultBlock { border-style: solid; border-radius: 8px; border-color: #767676; border-width: 4px; background-color: #F8F8F8; box-shadow: 0 0 0 0; padding : 10px;}</style> 
+          <div id="defaultBlock"> 
+            <div class="dmain"></div> 
+            <div><p>dialog advertising</p></div> 
+            <div class="dscroller"></div> 
+            <paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
+          </div> 
+        </template>
+      </ir-gallery-theme> 
+      <ir-gallery-theme name="transparent"> 
+        <template inline> 
+          <style></style> 
+          <div class="main"></div> 
+          <div class="scroller"></div> 
+        </template> 
+        <template dialog> 
+          <div id="transparentBlock"> 
+            <div class="dmain"></div> 
+            <div class="dscroller"></div> 
+            <paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
+          </div> 
+        </template>
+      </ir-gallery-theme>
+      <ir-gallery-theme name="blackfriday"> 
+        <template inline> 
+          <style> .main p { color : red; }</style> 
+          <div class="main"></div> 
+          <div><p>inline advertising</p></div> 
+          <div class="scroller"></div> 
+        </template> 
+        <template dialog> 
+          <style> 
+             .dmain p { color : red; } #blackfridayBlock { background-color: #000000; box-shadow: 0 0 0 0; padding: 10px;}
+             #cancelButton { color: white; } #back { color: white; } #forward { color: white; }
+             #dialogChild { margin : 0; padding: 0; }
+          </style> 
+          <div id="blackfridayBlock"> 
+            <div class="dmain"></div> 
+            <div style="margin: auto; width: 600px;">
+              <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
+              <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
+              <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
+              <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
+              <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
+              <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
+            </div> 
+            <div class="dscroller"></div> 
+            <paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
+          </div> 
+        </template>
+      </ir-gallery-theme>
+
+    </textarea>
+  		
 	</template>
 </dom-module>
 
@@ -782,11 +831,17 @@
 (function() {
   Polymer({
 		is : "ir-gallery-theme-defaults",
+
 		attached : function(e) {
 			console.log('attached default themes');
+
+      var templates = document.createElement('div');
+      templates.innerHTML = Polymer.dom(this.root).querySelector('textarea').value;
+      document.body.appendChild(templates);
 		}
 	})
 	//console.log('hello')
-	document.body.appendChild(document.createElement("ir-gallery-theme-defaults"));
+  document.body.appendChild(document.createElement("ir-gallery-theme-defaults"));
+
 })();
 </script>
