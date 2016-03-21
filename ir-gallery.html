@@ -237,21 +237,7 @@
                 document.addEventListener('template-ready', function(e){
 
                   if(!themes[e.detail.name])
-                    themes[e.detail.name] = { inline : e.detail.inline, dialog : e.detail.dialog };
-
-                  var state = 0;
-
-                  for(var f in themes)
-                  {
-                    state = 0;
-
-                    for(var i = 0; i < that.nameThemes.length; i++)
-                      if(that.nameThemes[i] == f)
-                        state = 1;
-
-                    if(state == 0)
-                      that.push('nameThemes', f);
-                  }                  
+                    themes[e.detail.name] = { inline : e.detail.inline, dialog : e.detail.dialog };            
 
                   if(e.detail.name == that.theme)
                   {
@@ -311,6 +297,21 @@
 
             setup : function() {
               console.log(themes);
+
+              var state = 0;
+
+              for(var f in themes)
+              {
+                state = 0;
+
+                for(var i = 0; i < this.nameThemes.length; i++)
+                  if(this.nameThemes[i] == f)
+                    state = 1;
+
+                if(state == 0)
+                  this.push('nameThemes', f);
+              }      
+
               this.swapPreview();
               this.$.setupMenu.open();
             },
