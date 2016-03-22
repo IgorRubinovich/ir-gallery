@@ -43,7 +43,7 @@ using gallery as you want. You can config all this stuff by your own templates.
 		    	.dmain p {
 	    			color : red; 
 	    		} 
-	    		#galleryBlock { 
+	    		.galleryBlock { 
 	    			background-color: #000000;
 	    			box-shadow: 0 0 0 0; 
 	    			padding: 10px;
@@ -62,7 +62,7 @@ using gallery as you want. You can config all this stuff by your own templates.
 		    		padding: 0; 
 		    	}
 		    </style> 
-		    <div id="galleryBlock"> 
+		    <div class="galleryBlock"> 
 			    <div class="dmain">
 			    	<!-- here would be main part of dialog gallery - scroller with large pictures -->
 			    </div>
