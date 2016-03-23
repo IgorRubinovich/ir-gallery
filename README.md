@@ -67,7 +67,8 @@ using gallery as you want. You can config all this stuff by your own templates.
 			    	<!-- here would be main part of dialog gallery - scroller with large pictures -->
 			    </div>
 			    <!-- below is an example of using ads --> 
-			    <div style="margin: auto; width: 600px;">
+			    <div style="margin: auto; width: 600px;" class="toResize">
+			      <!-- on your custom blocks add class "toResize" for correct responsive work -->
 			      <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
 			      <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
 			      <img style="height: 50px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
