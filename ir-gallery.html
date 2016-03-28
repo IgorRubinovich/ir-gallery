@@ -855,7 +855,11 @@
 		}
 	})
 	//console.log('hello')
-  document.body.appendChild(document.createElement("ir-gallery-theme-defaults"));
+
+  window.onload = function() {
+    document.body.appendChild(document.createElement("ir-gallery-theme-defaults"));
+  }
+  
 
 })();
 </script>
