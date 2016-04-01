@@ -5,12 +5,27 @@
 		<style is="custom-style"> 
 
 			:host {
-				  display: inline-block;
+				  display: flex;
+				  height: 670px;
+			}
+
+			.paper-dialog-0 > * {
+				margin: 0; 
+				padding: 0;
+			}
+
+			.paper-dialog-0 > *:last-child {
+				margin: 0; 
+			}
+
+			#galleryContainer {
+				display: flex;
+				flex: 1;
 			}
 
 		    #gallery-scroller {
-		        width : 900px;
-		        height : 580px;
+		        display: flex;
+		        flex: 1;
 		    }     
 
 		    .scroller-image {
@@ -18,8 +33,14 @@
 		    }
 
 		    #inline-scroller {
-		        width : 667px;
-		        height : 500px;
+		        display: flex;
+		        flex: 1;
+		    }
+
+		    #inline-main {
+		    	display: flex;
+		    	flex: 1;
+		    	flex-direction: column;
 		    }
 
 		    .scroller-image[inline-style] {
@@ -30,6 +51,12 @@
 		        width : 667px;
 		        height : 78px;
 		        padding-top : 10px;
+		    }
+
+		    #inlineChild {
+		    	display: flex;
+		    	flex: 1;
+		    	flex-direction: column;
 		    }
 
 		    #gallery-thumbnails {
@@ -83,8 +110,21 @@
 		        border-right: 16px solid transparent;
 		    }
 
+		    #flex-scroller {
+		    	display: flex;
+		    	flex: 1;
+		    	height: initial;
+		    }
+
+		    #testFlex {
+		    	height: 100%;
+    			width: 100%;
+		    }
+
 		    #gallery {
-		    	display: block;
+		    	display: flex;
+		    	flex-direction: column;
+		    	flex: 1;
 			    margin: 0;
 			    background: none;
 			    color: none;
@@ -95,6 +135,18 @@
 			    box-shadow: none;
 			    width: 100%;
 			    height: 100%;
+		    }
+
+		    #dialogChild {
+		    	display: flex;
+		    	flex-direction: column;
+		    	flex: 1;
+		    }
+
+		    #gallery-main {
+		    	display: flex;
+		    	flex-direction: column;
+		    	flex: 1;
 		    }
 
 		    #onePictureDialog {

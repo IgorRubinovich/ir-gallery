@@ -30,11 +30,6 @@
           <paper-dialog id="setupMenu" with-backdrop>
           <div>
             <h3 style="color: #3F51B5;">CHOOSE STYLE</h3>
-            <!--paper-radio-group selected="{{ themeSelected }}" attr-for-selected="name" selected-class="selectedStyle">
-              <paper-radio-button name="default"><iron-image style="width:400px; height:400px;" sizing="contain" src="/media/theme1.png"></iron-image><p>Default</p></paper-radio-button>
-              <paper-radio-button name="blackfriday"><iron-image style="width:400px; height:400px;" sizing="contain" src="/media/theme1.png"></iron-image><p>BlackFriday</p></paper-radio-button>
-              <paper-radio-button name="bluesky"><iron-image style="width:400px; height:400px;" sizing="contain" src="/media/theme1.png"></iron-image><p>BlueSky</p></paper-radio-button>
-            </paper-radio-group-->
             <div style="display: flex;">
               <paper-menu id="themeMenu" selected="{{ themeSelected }}" attr-for-selected="name">
               <template is="dom-repeat" items="{{ nameThemes }}">
@@ -82,8 +77,8 @@
               </rv-iscroll>
 
               <div id="navigationButtons">
-                <paper-icon-button id="iback" icon="arrow-back" on-tap="goBack"></paper-icon-button>
-                <paper-icon-button id="iforward" icon="arrow-forward" on-tap="goForward"></paper-icon-button>
+                <paper-icon-button class="iback" icon="arrow-back" on-tap="goBack"></paper-icon-button>
+                <paper-icon-button class="iforward" icon="arrow-forward" on-tap="goForward"></paper-icon-button>
               </div>
 
             </div>
@@ -122,8 +117,8 @@
                 </rv-iscroll>
                 
                 <div id="navigationButtons">
-                  <paper-icon-button id="back" icon="arrow-back" on-tap="goBack"></paper-icon-button>
-                  <paper-icon-button id="forward" icon="arrow-forward" on-tap="goForward"></paper-icon-button>
+                  <paper-icon-button class="back" icon="arrow-back" on-tap="goBack"></paper-icon-button>
+                  <paper-icon-button class="forward" icon="arrow-forward" on-tap="goForward"></paper-icon-button>
                 </div>
               </div>
 
@@ -144,6 +139,7 @@
             <!--paper-icon-button class="cancelB" icon="cancel" on-click="destroyScroller"></paper-icon-button-->
           </paper-dialog>
       </div>
+
     </template>
 
 </dom-module>
@@ -381,13 +377,8 @@
                 this.querySelector('#cancelButton').addEventListener('click', function(e) {
                     that.destroyScroller();
                 }); 
-            },
 
-            attached : function() {
-                var that = this,
-                    state = 0;
-
-                setTimeout(function() {
+              setTimeout(function() {
                     if(this.parentNode)
                     {
                       var galleryParent = this.parentNode;
@@ -398,23 +389,25 @@
                       if(!galleryParent)
                         return;  
 
-                      this.$['inline-gallery'].style.width = this.$['inline-scroller'].style.width = this.$['inline-thumbnails'].style.width = galleryParent.getBoundingClientRect().width + "px";
+                      this.$['inline-thumbnails'].style.width = galleryParent.getBoundingClientRect().width + "px";
                       var imagesToResize = this.$['inline-scroller'].getElementsByTagName('iron-image');
-                          for(var i = 0; i < imagesToResize.length; i++)
-                          {
-                            imagesToResize[i].style.width = galleryParent.getBoundingClientRect().width + "px";
-                            imagesToResize[i].style.height = document.documentElement.clientHeight / 2 + "px";
-                          } 
+                      for(var i = 0; i < imagesToResize.length; i++)
+                      {
+                        imagesToResize[i].style.width = this.$['inline-scroller'].offsetWidth + "px";
+                        imagesToResize[i].style.height = this.$['inline-scroller'].offsetHeight + "px";
+                      };                       
 
                       window.addEventListener('resize', function(e) {
-                        that.$['inline-gallery'].style.width = that.$['inline-scroller'].style.width = that.$['inline-thumbnails'].style.width = galleryParent.getBoundingClientRect().width + "px";
-                        that.$['inline-gallery'].style.height = document.documentElement.clientHeight / 2 + 120 + "px";
-                        that.$['inline-scroller'].style.height = document.documentElement.clientHeight / 2 + "px"
+                        that.$['inline-thumbnails'].style.width = galleryParent.getBoundingClientRect().width + "px";
+                        
                         var imagesToResize = that.$['inline-scroller'].getElementsByTagName('iron-image');
                         for(var i = 0; i < imagesToResize.length; i++)
                         {
-                          imagesToResize[i].style.width = galleryParent.getBoundingClientRect().width + "px";
-                          imagesToResize[i].style.height = document.documentElement.clientHeight / 2 + "px";
+                          imagesToResize[i].style.width = this.$['inline-scroller'].offsetWidth + "px";
+                          if(this.$['inline-scroller'].offsetHeight > 0)
+                            imagesToResize[i].style.height = this.$['inline-scroller'].offsetHeight + "px";
+                          else
+                            imagesToResize[i].style.height = "542px";
                         } 
                       });    
                     }                
@@ -425,6 +418,52 @@
                       this.$['inline-thumbnails'].scroll.refresh();
 
                 }.bind(this), 200);
+            },
+
+            attached : function() {
+                var that = this,
+                    state = 0;
+
+                setTimeout(function() {
+                  if(this.parentNode)
+                  {
+                    var galleryParent = this.parentNode;
+
+                    while(galleryParent && (!galleryParent.getBoundingClientRect || galleryParent.getBoundingClientRect().width == 0))
+                        galleryParent = galleryParent.parentNode;
+
+                    if(!galleryParent)
+                      return;  
+
+                    this.$['inline-thumbnails'].style.width = galleryParent.getBoundingClientRect().width + "px";
+                    var imagesToResize = this.$['inline-scroller'].getElementsByTagName('iron-image');
+                    for(var i = 0; i < imagesToResize.length; i++)
+                    {
+                      imagesToResize[i].style.width = this.$['inline-scroller'].offsetWidth + "px";
+                      if(this.$['inline-scroller'].offsetHeight > 0)
+                            imagesToResize[i].style.height = this.$['inline-scroller'].offsetHeight + "px";
+                          else
+                            imagesToResize[i].style.height = "542px";
+                    };                       
+
+                    window.addEventListener('resize', function(e) {
+                      that.$['inline-thumbnails'].style.width = galleryParent.getBoundingClientRect().width + "px";
+                      
+                      var imagesToResize = that.$['inline-scroller'].getElementsByTagName('iron-image');
+                      for(var i = 0; i < imagesToResize.length; i++)
+                      {
+                        imagesToResize[i].style.width = this.$['inline-scroller'].offsetWidth + "px";
+                        imagesToResize[i].style.height = this.$['inline-scroller'].offsetHeight + "px";
+                      } 
+                    });    
+                  }                
+
+                    if(this.$['inline-scroller'].scroll)
+                      this.$['inline-scroller'].scroll.refresh();
+                    if(this.$['inline-thumbnails'].scroll)
+                      this.$['inline-thumbnails'].scroll.refresh();
+
+                }.bind(this), 300);
                 
                 if(this.images.length !== 0)
                 {
@@ -557,7 +596,7 @@
                 if(this.pageToSwap < 0)
                   this.pageToSwap = this.images.length - 1;
 
-              if(e.currentTarget.getAttribute('id') == 'iback')
+              if(e.currentTarget.getAttribute('class') == 'iback')
               {
                 this.$['inline-thumbnails'].scroll.prev();
                 this.goToPage('inline-scroller', this.pageToSwap);
@@ -578,7 +617,7 @@
               if(this.pageToSwap > (this.images.length - 1))
                 this.pageToSwap = 0;
 
-              if(e.currentTarget.getAttribute('id') == 'iforward')
+              if(e.currentTarget.getAttribute('class') == 'iforward')
               {
                 this.$['inline-thumbnails'].scroll.next();
                 this.goToPage('inline-scroller', this.pageToSwap);
@@ -604,25 +643,16 @@
 
                   setTimeout(function() {
 
-                    this.negativeHeight = 40;
-                    var templateContent = this.$.gallery.querySelectorAll('.toResize');
-
-                    if(templateContent)
-                      for(var j = 0; j < templateContent.length; j++)
-                        this.negativeHeight += templateContent[j].offsetHeight;
-
                     var imagesToResize = this.$['gallery-scroller'].getElementsByTagName('iron-image');
                     for(var i = 0; i < imagesToResize.length; i++)
                     {
-                      imagesToResize[i].style.width = document.documentElement.clientWidth - 76 + "px";
-                      imagesToResize[i].style.height = document.documentElement.clientHeight - 218 - this.negativeHeight + "px";
+                      imagesToResize[i].style.width = this.$['gallery-scroller'].offsetWidth + "px";
+                      imagesToResize[i].style.height = this.$['gallery-scroller'].offsetHeight + "px";
                     }
 
-                    this.$['gallery-scroller'].style.width = document.documentElement.clientWidth - 76 + "px";
-                    this.$['gallery-scroller'].style.height = document.documentElement.clientHeight - 218 - this.negativeHeight + "px";
-
-
                     this.$['gallery-thumbnails'].style.width = document.documentElement.clientWidth - 76 + "px";
+
+                    this.$['gallery-scroller'].scroll.refresh();
 
                   }.bind(this), 200);
 
@@ -721,15 +751,14 @@
 
               if(e.currentTarget.id == 'gallery' && !this.isItFirstTime)
               {
-                this.$['gallery-scroller'].style.width = document.documentElement.clientWidth - 76 + "px";
-                this.$['gallery-scroller'].style.height = document.documentElement.clientHeight - 218 - this.negativeHeight + "px";
+
                 this.$['gallery-thumbnails'].style.width = document.documentElement.clientWidth - 76 + "px";
 
                 var imagesToResize = this.$['gallery-scroller'].getElementsByTagName('iron-image');
                 for(var i = 0; i < imagesToResize.length; i++)
                 {
-                  imagesToResize[i].style.width = document.documentElement.clientWidth - 76 + "px";
-                  imagesToResize[i].style.height = document.documentElement.clientHeight - 218 - this.negativeHeight + "px";
+                    imagesToResize[i].style.width = this.$['gallery-scroller'].offsetWidth + "px";
+                    imagesToResize[i].style.height = this.$['gallery-scroller'].offsetHeight + "px";
                 } 
 
                 setTimeout(function() {
@@ -737,7 +766,7 @@
                       this.$['gallery-scroller'].scroll.refresh();
                     if(this.$['gallery-thumbnails'].scroll)
                       this.$['gallery-thumbnails'].scroll.refresh();
-                  }.bind(this), 200)
+                  }.bind(this), 100)
               }
 
             },
@@ -776,12 +805,12 @@
     <textarea style="display : none;">
       <ir-gallery-theme name="default"> 
         <template inline> 
-          <style> .main p { color : red; }</style> 
+          <style> .main { display: flex; flex: 1;}</style> 
           <div class="main"></div> 
           <div class="scroller"></div> 
         </template> 
         <template dialog> 
-          <style>.dmain p { color : red; }  .defaultBlock { border-style: solid; border-radius: 8px; border-color: #767676; border-width: 4px; background-color: #F8F8F8; box-shadow: 0 0 0 0; padding : 10px;}</style> 
+          <style>.dmain { display: flex; flex: 1;} .defaultBlock { display: flex; flex: 1; flex-direction: column; border-style: solid; border-radius: 8px; border-color: #767676; border-width: 4px; background-color: #F8F8F8; box-shadow: 0 0 0 0; padding : 10px;}</style> 
           <div class="defaultBlock"> 
             <div class="dmain"></div> 
             <div class="dscroller"></div> 
@@ -793,11 +822,16 @@
       </ir-gallery-theme> 
       <ir-gallery-theme name="transparent"> 
         <template inline> 
-          <style></style> 
+          <style>
+            .main { display: flex; flex: 1;}
+          </style> 
           <div class="main"></div> 
           <div class="scroller"></div> 
         </template> 
         <template dialog> 
+          <style>
+            .transparentBlock {display: flex; flex: 1; flex-direction: column;} .dmain { display: flex; flex: 1;}
+          </style>
           <div class="transparentBlock"> 
             <div class="dmain"></div> 
             <div class="dscroller"></div> 
@@ -807,35 +841,6 @@
           </div> 
         </template>
       </ir-gallery-theme>
-      <ir-gallery-theme name="blackfriday"> 
-        <template inline> 
-          <style> .main p { color : red; }</style> 
-          <div class="main"></div> 
-          <div class="scroller"></div> 
-        </template> 
-        <template dialog> 
-          <style> 
-             .dmain p { color : red; } .blackfridayBlock { background-color: #000000; box-shadow: 0 0 0 0; padding: 10px;}
-             #cancelButton { color: white; } #back { color: white; } #forward { color: white; }
-          </style> 
-          <div class="blackfridayBlock"> 
-            <div class="dmain"></div> 
-            <div style="margin: auto; width: 600px;" class="toResize">
-              <img style="height: 100px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-              <img style="height: 100px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-              <img style="height: 100px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-              <img style="height: 100px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-              <img style="height: 100px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-              <img style="height: 100px;" src="http://ipsumimage.appspot.com/cga?l=ad%20unit|home-center-left">
-            </div> 
-            <div class="dscroller"></div>
-            <div style="text-align: right;"> 
-              <paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
-            </div>
-          </div> 
-        </template>
-      </ir-gallery-theme>
-
     </textarea>
   		
 	</template>
