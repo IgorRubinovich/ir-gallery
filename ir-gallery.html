@@ -471,7 +471,13 @@
                     {
                       this.onePictureMode = true;
                       this.showDefaultImages = true;
+                      this.style.display = "inline-block";
                     }
+                    else
+                    {
+                      this.style.display = "flex";
+                      this.style.minHeight = "667px";
+                    }                      
 
                     if(this.galleryMode)
                       this.showDefaultImages = true;
