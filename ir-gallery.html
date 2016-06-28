@@ -859,18 +859,16 @@
 		is : "ir-gallery-theme-defaults",
 
 		attached : function(e) {
-			console.log('attached default themes');
-
-      var templates = document.createElement('div');
-      templates.innerHTML = Polymer.dom(this.root).querySelector('textarea').value;
-      document.body.appendChild(templates);
+			var templates = document.createElement('div');
+			templates.innerHTML = Polymer.dom(this.root).querySelector('textarea').value;
+			document.body.appendChild(templates);
 		}
 	})
-	//console.log('hello')
 
-  window.onload = function() {
-    document.body.appendChild(document.createElement("ir-gallery-theme-defaults"));
-  }
+	// This might not suffice for some browsers but seems like everything after IE8 is fine.
+	document.addEventListener("DOMContentLoaded", function() {
+		document.body.appendChild(document.createElement("ir-gallery-theme-defaults"));
+	});
   
 
 })();
