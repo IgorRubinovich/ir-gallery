@@ -1,0 +1,94 @@
+
+<dom-module id="ir-gallery-theme">
+	<template>
+	  <content id="templates"></content>
+	</template>
+	
+	<script>
+
+	</script>
+</dom-module>
+
+
+<dom-module id="ir-gallery-theme-defaults">
+	<template>
+
+	<!--textarea style="display : none;"-->
+	  <ir-gallery-theme name="default"> 
+		<template inline> 
+		  <style> .main { display: flex; flex: 1;}</style> 
+		  <div class="main"></div> 
+		  <div class="thumbnails"></div> 
+		</template> 
+		<template dialog> 
+		  <style>.dmain 
+			{ 
+				display: flex; flex: 1;
+			} 	
+			.defaultBlock {
+				border-style: solid; 
+				border-radius: 8px; 
+				border-color: #767676; 
+				border-width: 4px; 
+				background-color: #F8F8F8; 
+				box-shadow: 0 0 0 0; 
+				padding : 10px;}
+		   </style> 
+		  <div class="defaultBlock "> 
+			<div class="main"></div> 
+			<div class="thumbnails"></div> 
+			<div style="text-align: right;"> 
+			  <paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
+			</div>
+		  </div> 
+		</template>
+	  </ir-gallery-theme> 
+	  <ir-gallery-theme name="transparent"> 
+		<template inline> 
+		  <style>
+			.main { display: flex; flex: 1;}
+		  </style> 
+		  <div class="main"></div> 
+		  <div class="scroller"></div> 
+		</template> 
+		<template dialog> 
+		  <style>
+			.transparentBlock {display: flex; flex: 1; flex-direction: column;} .dmain { display: flex; flex: 1;}
+		  </style>
+		  <div class="transparentBlock"> 
+			<div class="dmain"></div> 
+			<div class="dscroller"></div> 
+			<div style="text-align: right;"> 
+			  <paper-icon-button id="cancelButton" icon="cancel"></paper-icon-button> 
+			</div>
+		  </div> 
+		</template>
+	  </ir-gallery-theme>
+	<!--/textarea-->
+  		
+	</template>
+</dom-module>
+
+
+<script>
+(function() {
+  Polymer({
+		is : "ir-gallery-theme-defaults",
+
+		attached : function(e) {
+			var templates = document.createElement('div');
+			//templates.innerHTML = Polymer.dom(this.root).innerHTML;
+			Polymer.dom(document.body).appendChild(this.root);
+		}
+	})
+
+	// This might not suffice for some browsers but seems like everything after IE8 is fine.
+	document.addEventListener("DOMContentLoaded", function() {
+		
+		console.log('attached gallery theme');
+		Polymer.dom(document.body).appendChild(document.createElement("ir-gallery-theme-defaults"));
+	});
+  
+
+})();
+</script>
