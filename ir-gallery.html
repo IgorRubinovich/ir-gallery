@@ -201,69 +201,219 @@
 	  this.fire('ir-gallery-theme-ready', { inline : inlineTemplate, dialog : dialogTemplate, name : this.name });
 	}
   });
-
+  
+  function dimensionsData() {
+	return {
+		width : 0,
+		height : 0
+	}
+  }
+  
+  function displayAreaData(areaName, sectionName) {
+	return {
+				name : areaName,
+				section : sectionName,
+				slides : [],
+				captions : [],
+				scroller : null,
+				wrapper : null,
+				dimensions : {
+					wrapper : dimensionsData(),
+					slide : dimensionsData(),
+					scroller : dimensionsData(),
+				}
+			}
+  }
+  
+  function sectionData(sectioName) {
+	return {
+		name : sectioName,
+		template : null,
+		dimensions : dimensionsData(),
+		displayAreas : {
+			main 		: displayAreaData('main', sectioName),
+			thumbnails 	: displayAreaData('thumbnails', sectioName),
+		}
+	}
+  }
+  
+  function sectionsDataStore() {
+	return {
+		inline : sectionData('inline'),
+		dialog : sectionData('dialog')
+	}
+  }
+  
   Polymer({
 			is : 'ir-gallery',
 
 			properties : {
-				images  :		   { type : Array, value : function() { return [] } },
-				imgSrc :			{ type : String },
-				imgCaption :		{ type : String },
-				imagesReady : 		{ type : Boolean, value : false },
-				negativeHeight :	{ type : Number, value : 40 },
-				showDefaultImages : { type : Boolean, value : false },
-				isItFirstTime :	 { type : Boolean, value : false },
-				onePictureMode :	{ type : Boolean, value : false },
-				inlineMode :		{ type : Boolean, value : false },
-				galleryMode :	   { type : Boolean, value : false },
-				pageToSwap :		{ type : Number, value : 0 },
-				theme :			 { type : String, notify : true, value : "default" },
-				nameThemes :		{ type : Array, value : [] },
-				themeSelected :	 { type : String, value : "default"},
-				themes : { type : Object, value : themes },
-				ratio : { type : Number, value : .65 },
-				currentPage : { type : Number, value : 0 },
-				scrollers : { type : Object, value : function() { return {} } }
+				images  		: 	{ type : Array, value : function() { return [] } },
+				theme 			:	{ type : String, notify : true, value : "default" },
+				themes 			: 	{ type : Object, value : themes },
+				ratio 			: 	{ type : Number, value : .8 },
+				currentPage 	: 	{ type : Number, value : 0 },
+				sectionsData 	: 	{ type : Object, value : sectionsDataStore },
 			},
 			
 			behaviors : [
 				Polymer.Templatizer
 			],
-			
+
 			ready : function () {
-				/*window.addEventListener('resize', function() {
-					//this.debounce(function() { 
-					this.init.call(this);
-					//}, 300);
-				}.bind(this));*/
-				
-				//var element = document.getElementById('this');
 			},
-			
 			
 			attached : function () {
 				this.resetDimensions();
-				this.init();
-				this.firstPass = true;
-				new ResizeSensor(this.offsetParent, function() {
-					this.resetDimensions();
-					this.init();
+				
+				this.clearScrollers();
+				this.scanForImages();
+
+				this.applyTheme(function() {				
+					this.fillAndFit('inline');
+					
+					this.async(function() {
+						// observe resize
+						new ResizeSensor(this.offsetParent, function() {
+							this.debounce('ResizeSensor', this.refit, 300);
+						}.bind(this))
+					});
 				}.bind(this));
+				
+				
+				
+				
+				return;
+
+				// observe nodes
 				Polymer.dom(this.$.contentNode).observeNodes(function(info) {
+					this.clearScrollers();
+					this.scanForImages();
 					this.init();
 				}.bind(this))
 			},
 			
-			resetDimensions : function() {
-				this.dimensions = 
-				{
-					inline : { wanted : {}, actual : {}, refit : {} },
-					dialog : { wanted : {}, actual : {}, refit : {} }
-				}
+			// fits the section into its container and fills out images&scrollers
+			fillAndFit : function(sectionName) {
+				this.fitSectionContent(sectionName);
+				this.fillSectionContent(sectionName);
+				this.styleSectionContent(sectionName);
+
+				this.assignCommands(this.sectionsData[sectionName].container);
+				
+				//Polymer.dom(da.scroller).appendChild(slide);
+				// this.fill(sectionName);
 			},
 			
-			refit : function(section) {
-				this.$.container.style.visibility = "hidden";
+			refit : function() {
+				this.resetDimensions.call(this);
+				this.fitSectionContent('inline');
+				this.styleSectionContent('inline');
+			},
+			
+			resetDimensions : function() {
+				this.forEachDisplayArea(function(da) {
+					Object.keys(da.dimensions).forEach(function(da, type) {
+						da.dimensions[type] = dimensionsData();
+					}.bind(this, da))
+				}); 
+			},
+
+			// styles section content in a non-destructive manner
+			styleSectionContent : function(sectionName) {
+				this.forEachDisplayArea(function(da) {
+					var capSize, size = da.dimensions.slide;
+
+					this.scopeSubtree(da.wrapper, true);
+
+					da.slides.forEach(function(slideData) {
+
+						this.setSize(slideData.slide, size);
+						this.setSize(slideData.wrapper, size);
+
+						if(!slideData.caption)
+							this.setSize(slideData.image, size);
+						else
+						{
+							this.setSize(slideData.image, { width : size.width, height : size.height * this.ratio });
+							this.setSize(slideData.caption, { width : size.width, height : size.height * (1 - this.ratio) });
+						}
+					}.bind(this));
+				}.bind(this), sectionName);
+			},
+
+			
+			// fills section into container or dimensions given in its css
+			fillSectionContent : function(sectionName) {
+				this.forEachDisplayArea(function(da) {
+					console.log('filling ', da.name)
+					this.populateDisplayArea(da);
+					this.populateSlides(da);
+					this.upgradeScroller(da);
+				}.bind(this), sectionName); 
+			},
+			
+			// fits section into container or dimensions given in its css
+			fitSectionContent : function(sectionName) {
+				var container, minh, minw, fminh, fminw, t, bcr,
+					dialogMode = sectionName == 'dialog', takesh, takesw;
+				
+				container = this.$[sectionName + "Container"];
+				
+				minh = Infinity; //this.dimensions[sectionName].refit.height;
+				minw = Infinity;
+				
+				fminh = function(val) { minh = Math.min(minh, val) || val || minh } // these help us see the trees behind the forest
+				fminw = function(val) { minw = Math.min(minw, val) || val || minw }
+				
+				if(!dialogMode)
+				{
+					fminh(this.style.height && this.style.height.replace(/px/, ''));
+					fminw(this.style.width && this.style.width.replace(/px/, ''));
+				}
+				
+				fminh(document.body.clientHeight);
+				fminw(document.body.clientWidth);
+
+				t = container.offsetParent;
+				
+				do {
+					bcr = t.getBoundingClientRect();
+					fminw(bcr.width);
+					fminh(bcr.height)
+					fminw(t.clientWidth)
+					fminh(t.clientHeight)
+					t = t.offsetParent;
+				} while(t);
+				
+				this.forEachDisplayArea(function(da) {
+					if(da.wrapper)
+						da.wrapper.style.height = 0;
+				});
+				
+				container.style.height = 0;
+				container.style.width = 0;
+				
+				takesh = container.scrollHeight
+				takesw = container.scrollWidth
+			
+				container.style.height = minh;
+				container.style.width = minw;
+				
+				this.forEachDisplayArea(function(da) {
+					da.wrapper.style.width = minw;
+						da.dimensions.wrapper.width = minw;
+					
+					da.wrapper.style.height = 
+						da.dimensions.wrapper.height = (minh -takesh) * (da.name == 'main' ? this.ratio : 1 - this.ratio);
+				
+					da.dimensions.slide.height = da.dimensions.wrapper.height;
+					da.dimensions.slide.width = da.name == 'main' ? minw : da.dimensions.slide.height * (minh / minw); 
+				}.bind(this), sectionName);
+			},
+			
+			x_refit : function(section) {
+				// this.$.container.style.visibility = "hidden";
 				this.debounce('refit', function() {
 					var cont = this.$[section + "Container"],
 						hNeedsRefit = this.dimensions[section].wanted.height < cont.scrollHeight;
@@ -290,40 +440,13 @@
 			init : function(section) {
 				var initialized, apply;
 				
+				return;
+				
 				if(!section)
 					section = 'inline';
 				
-				this.$.container.style.visibility = "hidden";
+				//this.$.container.style.visibility = "hidden";
 				
-				this.clearAll();
-				this.scanForImages();
-				
-				apply = function() { 
-					if(initialized)
-						return;
-					this.applyTheme('inline', this.refit.bind(this, 'inline'));
-					if(this.$.dialog.opened)
-					{
-						this.$.dialog.refit();
-						this.async(function() {
-							this.applyTheme('dialog', this.refit.bind(this, 'dialog'));
-						}, 100);
-					}
-					initialized = true;
-				}.bind(this);
-				
-				if(this.themes[this.theme])
-					apply();
-				else
-				{
-					document.addEventListener('ir-gallery-theme-ready', function(ev) {
-						if(ev.detail.name == this.theme)
-							apply(); //(themes[this.theme].inline, themes[this.theme].dialog, true);
-					}.bind(this));
-
-					// if nothing happened within 5 seconds the template is probably not available and we should use the default
-					this.async(apply, 100);
-				}
 			},
 
 			clearAll : function(filter) {
@@ -365,26 +488,76 @@
 				}.bind(this));
 			},
 			
-			getClientDimensions : function() {
-			
-			},
-			
 			/*
 				apply theme to all sections of target, where target is 'inline' or 'dialog'
 			*/
-			applyTheme : function(target, callback) {				
-				//this.clearAll(target);
-				this.debounce('applyTheme' + target, function() {
+			applyTheme : function(callback) {
+				var initialized, apply;
+				
+				apply = function() { 
+					if(initialized)
+						return;
+					
+					this._applyTheme('inline');
+					initialized = true;
+					
+					if(callback)
+						callback();
+
+					return;
+					
+					if(this.$.dialog.opened)
+					{
+						this.async(function() {
+							this._applyTheme('dialog', this.refit.bind(this, 'dialog'));
+						}, 100);
+					}
+				}.bind(this);
+				
+				if(this.themes[this.theme])
+					apply();
+				else
+				{
+					document.addEventListener('ir-gallery-theme-ready', function(ev) {
+						if(ev.detail.name == this.theme)
+							apply(); //(themes[this.theme].inline, themes[this.theme].dialog, true);
+					}.bind(this));
+
+					// if nothing happened within 5 seconds the template is probably not available and we should use the default
+					this.async(apply, 5000);
+				}
+			},
+			
+			_applyTheme : function(sectionName, callback) {				
+				var instance, section;
+				
+				section = this.$[sectionName + "Container"];
+				
+				this.sectionsData[sectionName].template = this.themes[this.theme][sectionName]; // y?
+				this.sectionsData[sectionName].container = section;
+				
+				instance = this.stampThemeSection(section, this.themes[this.theme][sectionName]);
+				//this.debounce('applyTheme' + sectionName, function() {
+					var sd = this.sectionsData[sectionName];
+					sd.displayAreas.main.wrapper = Polymer.dom(section).querySelector('.main');
+					sd.displayAreas.thumbnails.wrapper = Polymer.dom(section).querySelector('.thumbnails');
+					//callback(instance);
+					//this.section
+				//}, 100)
+			},
+				
+			styleThemeSection : function() {
 					var themeData = this.themes[this.theme],
 						w, h, min, t, minw, minh, pic, stampRes,
 						container, toStyle, hcmd, invratio, invratiosq, 
-						cs, margins, bcr, fminh, fminw;
-						
-					var dialogMode = target == 'dialog';
-
-					container = this.$[target + "Container"];
+						cs, margins, bcr, fminh, fminw, opts;
 					
-					minh = this.dimensions[target].refit.height;
+					// calculate container size
+					var dialogMode = sectionName == 'dialog';
+
+					container = this.$[sectionName + "Container"];
+					
+					minh = this.dimensions[sectionName].refit.height;
 					minw = Infinity;
 					
 					fminh = function(val) { minh = Math.min(minh, val) || val || minh } // these help us see the trees behind the forest
@@ -413,26 +586,27 @@
 					min = Math.min(minw, minh);
 					h = w = min;
 					
-					if(!this.dimensions[target].wanted.height)
-						this.dimensions[target].wanted.height = h;
+					if(!this.dimensions[sectionName].wanted.height)
+						this.dimensions[sectionName].wanted.height = h;
+	
+					this.scrollers[sectionName] = {};
 					
+					opts = { 
+								section : sectionName, 
+								size : min, 
+								slideWidth : minw, 
+								dialogMode : dialogMode 
+							};
 					
-					//this.scrollers = {};
-					
-					this.scrollers[target] = {};
-					
-					this._ratio = this.ratio;
-					
-					this.stampThemeSection(		container, 
-												themeData[target], 
-												{ section : target, size : min, slideWidth : minw, dialogMode : dialogMode },
-												callback
-											);
+					this.stampThemeSection(container, themeData[sectionName], opts);
+
+					return;
+					this.populateThemeSection(container, opts)
 					
 					//dialog = this.stampThemeSection(this.$.dialogContainer, themeData.dialog, .35 * min);
 					
 					container.style.width = minw + 'px';
-					container.style.height = this.dimensions[target].wanted.height + 'px';
+					container.style.height = this.dimensions[sectionName].wanted.height + 'px';
 					
 					pic = Polymer.dom(container);
 					
@@ -451,33 +625,18 @@
 					
 					//this.setSizeToParentClientSize([pic.querySelector('.main'), pic.querySelector('.commands'), pic.querySelector('.main')])
 					
-						toStyle.main.width = toStyle.thumbnails.width = toStyle.commands.width = minw + "px";
-						toStyle.main.height = (this.images.length > 1 ? this._ratio : 1) * h + "px";
+					toStyle.main.width = toStyle.thumbnails.width = toStyle.commands.width = minw + "px";
+					toStyle.main.height = (this.images.length > 1 ? this._ratio : 1) * h + "px";
 
-						invratio = 1 - this._ratio;
-						invratiosq = invratio * invratio;
+					invratio = 1 - this._ratio;
+					invratiosq = invratio * invratio;
 
-						// commands is either its natural size or shrinked to inverse ratio squared
-						t = pic.querySelector('.commands');
-						if(t)
-						{
-							hcmd = pic.querySelector('.commands').getBoundingClientRect().height;
-							/*if(h * invratiosq < hcmd)
-							{
-								toStyle.commands.transform = 'scale(' + (h * invratiosq) / hcmd + ',' + (h * invratiosq) / hcmd + ')';
-								hcmd = h * invratiosq;
-							}*/	
-							toStyle.commands.height = hcmd + "px";
-							
-							toStyle.thumbnails.height = (invratio * h - hcmd) + "px";
-
-							if(!dialogMode)
-								Polymer.dom(this.root).querySelector('.viewPort').style.height = this._wantedHeight;
-						}
-					
+					if(!dialogMode)
+						Polymer.dom(this.root).querySelector('.viewPort').style.height = this._wantedHeight;
+				
 					if(callback)
 						callback.call(this);
-				}.bind(this), 100);
+				//}.bind(this), 100);
 			},
 			
 			nextPage : function(page) {
@@ -501,136 +660,105 @@
 				if(this.images.length <= 1)
 					return
 				this.currentPage = page;
-				this.forEachScroller(function(s) { 
-					s.scroller.goToPage(page, 0) 
-				}.bind(this));
+				this.syncScrollers();
 			},
 			
-			forEachScroller : function(foo, section) {
-				var s = [], alls = this.scrollers;
-				
-				if(!alls)
-					return;
-				
-				if(alls.inline)
-					s = [ 
-							{ section : "inline", scroller : alls.inline.main },
-							{ section : "inline", scroller : alls.inline.thumbnails } 
-						];
-
-				if(alls.dialog)
-				{
-					s.push({ section : 'dialog', scroller : alls.dialog.main});
-					s.push({ section : 'dialog', scroller : alls.dialog.thumbnails});
-				}
-				
-				s = s.filter(function(s) { return s && s.scroller }); 
-				
-				if(section)
-					s = s.filter(function(s) { return s.section == section });
+			forEachSection : function(foo, sections) {
+				if(!sections)
+					sections = ['inline', 'dialog'];
+				if(!(sections instanceof Array))
+					sections = [sections];
 					
-				s.forEach(foo);
+				sections.forEach(function(s) { 
+					foo(this.sectionsData[s]) 
+				}.bind(this));
+			},
+
+			forEachDisplayArea : function(foo, section) {
+				this.forEachSection(function(s) {
+					Object.keys(s.displayAreas)
+						.forEach(function(da) { 
+							var q = s.displayAreas[da];
+							if(q) 
+								foo(q); 
+						}.bind(this));
+				}, section);
+			},
+			
+			forEachScroller : function(foo) {
+				this.forEachDisplayArea(function(da) {
+					if(da.iscroll)
+						foo(da.iscroll);
+				});
 			},
 			
 			// section is 'inline' or 'dialog'
-			clearScrollers : function(section) {
-				this.forEachScroller(function(s) { s.scroller.destroy(); }, section);
-				if(section)
-					this.scrollers[section] = null;
-				else
-					this.scrollers.inline  = this.scrollers.dialog = null;
+			clearScrollers : function() {
+				this.forEachScroller(function(s) { s.destroy(); });
 			},
 			
-			syncScrollers : function(section, sourceScroller) {
-				var 
+			syncScrollers : function() {
+				/*var 
 					alls = this.scrollers, 
 					s = alls[section];
 					
 				this.currentPage = s[sourceScroller].currentPage.pageX || 0;
+				*/
 				
 				this.forEachScroller(function(s) {
-					s.scroller.goToPage(this.currentPage, 0); 
+					s.goToPage(this.currentPage, 0); 
 				}.bind(this));
 			},
 			
 			/*
-				stamp theme into target. target is either $.inlineContainer or $.dialogContainer
+				stamp theme template into section
+				returns template instance (Polymer.base)
 			*/
-			stampThemeSection : function(target, template, opts, callback) {
-				var instance, t, main, wrappers, hcmd;
+			stampThemeSection : function(container, template) {
+				var instance, t;
 				t = template;		
 				
 				this.templatize(t);
-				
 				instance = this.stamp({});
-
-				Polymer.dom(target).appendChild(instance.root);
-
-				hcmd = target.querySelector('.commands');
-				if(hcmd) hcmd = hcmd.getBoundingClientRect().height;
+				Polymer.dom(container).appendChild(instance.root);
 				
-				Polymer.dom.flush();
-
-				wrappers = {};
-				
-				wrappers.main = this.populateDisplaySection(target, { 
-														selector : ".main", 
-														size : this.images.length > 1 ? this._ratio * opts.size : opts.size,
-														section : target,
-														onclick : opts.dialogMode ? null : function(ev) {
-																								this.openDialog.call(this);
-																							}.bind(this),
-														slideWidth : opts.slideWidth
-													});
-
-													
-				wrappers.thumbnails = this.populateDisplaySection(target, { 
-														selector : ".thumbnails", 
-														size : this.images.length > 1 ? (1 - this._ratio) * opts.size - hcmd : 0,
-														noCaption : true,
-														section : target,
-														onclick : function(ev) { 
-															this.goToPage(Polymer.dom(ev).localTarget.index, 0)
-														}.bind(this),
-													});
-
-				this.scopeSubtree(target, true);
-				Polymer.updateStyles()
-
+				return instance;
+			},
+			
+			upgradeScroller : function(da, callback)
+			{
 				this.async( function(target) {
 					var scrollers = {};
-					["main", "thumbnails"].forEach(function(s) {
-						// init iscroll
-						var iscroll = new IScroll(wrappers[s], {
-							mouseWheel: true,
-							scrollX: this.images.length > 1,
-							scrollY: false,
-							momentum: true,
-							snap: ".slide",
-							snapSpeed: 400,
-							keyBindings: opts.dialogMode && this.images.length > 1
-						});
-						iscroll.refresh();
-						scrollers[s] = iscroll; //{ scroller : iscroll, section : opts.section };
-					}.bind(this));
-					this.scrollers[opts.section] = scrollers;
+					
+					da.wrapper.style.position = 'relative'
+					da.scroller.style.position = 'relative'
+					da.scroller.style.width = da.dimensions.slide.width * this.images.length
+					//da.wrapper.style.position = 'relative'; 
+					da.wrapper.style.overflow = 'hidden'; 
+					
+					da.iscroll = new IScroll(da.wrapper, {
+						mouseWheel: true,
+						scrollX: this.images.length > 1,
+						scrollY: false,
+						momentum: true,
+						snap: ".slide",
+						snapSpeed: 500,
+						keyBindings: da.name == 'dialog' && this.images.length > 1
+					});
+					
+					da.iscroll.refresh();
+				
 					if(this.images.length > 1)
-						scrollers.main.on('scrollEnd', function() { 
-							this.currentPage = scrollers.main.currentPage.pageX;
+						da.iscroll.on('scrollEnd', function() { 
+							this.cancelDebouncer('scrollEnd'); 
 							this.debounce('scrollEnd', function() { 
-								this.syncScrollers(opts.section, "main");
-							}.bind(this), 200);
+								this.currentPage = da.iscroll.currentPage.pageX;
+								this.syncScrollers();
+							}.bind(this), 600);
 						}.bind(this));
 					
 					if(callback) callback();
-				}, 100);
-
-													
-				this.assignCommands(target);
-				//return scrollers;
-				//Polymer.dom.flush();
-	
-				//return { instance : instance.root, scrollers : scrollers };
+				}, 300);													
 			},
 
 			assignCommand : function(target, selector, foo)
@@ -642,13 +770,15 @@
 			},
 			
 			assignCommands : function(target) {
-				var commandsEl = Polymer.dom(target).querySelectorAll('.commands');
-				if(!commandsEl.length)
-					return;
-				//commandsEl.forEach(function() {
-				this.assignCommand(target, '[command-forward]', this.nextPage.bind(this));
-				this.assignCommand(target, '[command-backward]', this.prevPage.bind(this))
-				this.assignCommand(target, '[command-close]', this.closeDialog.bind(this))
+				this.async(function() {
+					var commandsEl = Polymer.dom(target).querySelectorAll('.commands');
+					if(!commandsEl.length)
+						return;
+					//commandsEl.forEach(function() {
+					this.assignCommand(target, '[command-forward]', this.nextPage.bind(this));
+					this.assignCommand(target, '[command-backward]', this.prevPage.bind(this))
+					this.assignCommand(target, '[command-close]', this.closeDialog.bind(this))
+				},100)
 				//}.bind(this))
 			},
 
@@ -700,21 +830,23 @@
 				});
 			},
 			
-			imageFromData : function(imgData, opts)
+			// creates a slide from data. returns slideData
+			slideFromData : function(imgData, opts, thumbsMode)
 			{
 				var wrapper, caption, tocenter, w, h, imgel, slide,
-					hasCaption = imgData.captionHTML && !opts.noCaption;
+					hasCaption = imgData.captionHTML && !thumbsMode;
 
 				imgel = document.createElement('iron-image');
 				slide = document.createElement('div');
+				slide.classList.add('slide');
+				slide.style.position = 'relative';
 
 				imgel.src = imgData.src;
 				imgel.index = imgData.index;
 				imgel.sizing = 'contain';
-				
-				w = opts.slideWidth || opts.size;
-				h = opts.size * (hasCaption ? this._ratio * 1.3 : 1);
-				
+				imgel.style.width = opts.width
+				imgel.style.height = opts.height
+
 				wrapper = document.createElement('figure');					
 				Polymer.dom(wrapper).appendChild(imgel);
 				Polymer.dom(slide).appendChild(wrapper);
@@ -722,61 +854,90 @@
 				if(hasCaption)
 				{
 					caption = document.createElement('figcaption');
-					caption.style.height  = opts.size - h;
 					Polymer.dom(caption).innerHTML = imgData.captionHTML;				
 					Polymer.dom(wrapper).appendChild(caption);
-					wrapper.style.height = h - caption.offsetHeight;
 				}
-
-				this.setSize(imgel, { width : w, height : h }); //* (opts.noCaption ? this._ratio : 1) });				
-				this.setSize(wrapper, { width : w, height : h});				
-
-				slide.display = 'block';
-				slide.style.textAlign = 'center';
 				
-				return slide;
+				if(opts.onclick)
+					slide.addEventListener("click", opts.onclick.bind(this));
+			
+				return { 
+							slide : slide, 
+							caption : caption, 
+							wrapper : wrapper,
+							image : imgel
+						};
+			},
+			
+			/* Populates slides into a display area */
+			populateSlides : function(da) {
+				var thumbMode = da.name == 'thumbnails';
+				
+				da.slides.forEach(function(slideData) {
+					Polymer.dom(Polymer.dom(slideData.slide).parentNode).removeChild(slideData.slide);
+				});
+				
+				da.slides = [];
+				
+				// add slides to scroller
+				this.images.forEach(function(imgData) {
+					var slideData = this.slideFromData(imgData, da.dimensions[thumbMode ? 'wrapper' : 'slide'], thumbMode);
+					da.slides.push(slideData);
+					Polymer.dom(da.scroller).appendChild(slideData.slide);
+				}.bind(this));
+			},
+			
+			styleSlides : function(da) {
+				this.slides.forEach(function(slideData) {
+					Polymer.dom(slideData.slide).classList.add('slide');
+					//slideData.caption && Polymer.dom(slideData.caption).classList.add(this.themes[this.theme].scopeClass);
+
+					w = opts.slideWidth || opts.size;
+					h = opts.size * (hasCaption ? this._ratio * 1.3 : 1);
+
+					caption.style.height  = opts.height * this.ratio;
+					wrapper.style.height = h - caption.offsetHeight;
+					imgel.style.height = h - caption.offsetHeight;
+					
+					this.setSize(slide, { width : w, height : h }); //* (opts.noCaption ? this._ratio : 1) });				
+					this.setSize(imgel, { width : w, height : h }); //* (opts.noCaption ? this._ratio : 1) });				
+					this.setSize(wrapper, { width : w, height : h});				
+
+					slide.display = 'block';
+					slide.style.textAlign = 'center';
+				}.bind(this));
 			},
 			
 			// populates a scroller/thumbnails container
 			//
 			// opts: selector, size, noCaption, onClick
-			populateDisplaySection : function(root, opts) {
-				var wrapper, scroller, pt;
+			populateDisplayArea : function(da) {
+				var scroller, pt, thumbMode;
 
 				// build scroller
 				
-				//  get the wrapper
-				wrapper = Polymer.dom(root).querySelector(opts.selector)
-				
 				// remember: wrapper -> scroller -> slides, and iScroll is initialized on wrapper
-				Polymer.dom(wrapper).classList.add('wrapper');
+				Polymer.dom(da.wrapper).classList.add('wrapper');
+				
+				if(da.scroller)
+					da.scroller.destroy();
 				
 				// create wrapper in scroller
 				scroller = document.createElement('div');
 				Polymer.dom(scroller).classList.add('scroller')
 
-				pt = Polymer.dom(scroller);
-				
-				Polymer.dom(wrapper).appendChild(scroller);
-				
-				// add slides to scroller
-				this.images.forEach(function(imgData) {
-					var slide = this.imageFromData(imgData, opts);
-					Polymer.dom(slide).classList.add('slide');
-					Polymer.dom(slide).classList.add(this.themes[this.theme].scopeClass);
-					Polymer.dom(scroller).appendChild(slide)
-					if(opts.onclick)
-						slide.addEventListener("click", opts.onclick.bind(this));
-				}.bind(this));
+				Polymer.dom(da.wrapper).appendChild(scroller);
+
+				scroller.style.width = da.dimensions.slide.width * da.slides.length; 
+				scroller.style.height = da.dimensions.slide.height; 
+				da.wrapper.style.position = 'relative'; 
+				da.wrapper.style.overflow = 'hidden'; 
 			
-				scroller.style.width = (opts.slideWidth || opts.size) * this.images.length; 
-				scroller.style.height = (opts.size) * (1 - this._ratio); 
+				da.scroller = scroller;
 			
 				Polymer.updateStyles();
-				
-				return wrapper
 			},
-
+			
 			goBack : function(e) {
 			},
 
@@ -825,7 +986,7 @@
 					border : 3px solid green;
 				}
 				.thumbnails { display : flex, align-items : middle}
-				#inline-wrapper { background : #fafafa; margin-bottom : 2px }
+				#inline-wrapper { background : #fafafa;  background : pink; margin-bottom : 2px }
 			</style>
 			<div id="inline-wrapper">
 				<div class="main"></div> 
