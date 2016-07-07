@@ -1,0 +1,142 @@
+<html>
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+
+  <link rel="import" href="../bower_components/polymer/polymer.html">
+
+  <link rel="import" href="../bower_components/ir-gallery/ir-gallery.html">
+  
+  <style>
+	#container {
+		position : relative;
+		width : 100%;
+		overflow : hidden;
+	}
+	.inlines {
+		border : 2px solid green;
+		display : flex;
+	}
+	.inlines > * {
+		margin : 0 auto;
+	}
+	body {
+		background : url('https://farm5.staticflickr.com/4118/4924781942_f39be71439_o.jpg')
+	}
+	.small, .mid, .large {
+		position : relative;
+	}
+	.small {
+		width : 100px;
+		height :100px;
+	}
+	.mid {
+		width : 200px;
+		height :200px;
+	}
+	.large {
+		width : 400px;
+		height : 400px;
+	}
+  </style>
+  
+  <script> 
+	  setTimeout(function() {
+		return
+		console.log('remove-add')
+		console.log(Polymer.dom(Polymer.dom(document.body.firstChild).cloneNode(true)).innerHTML)
+		console.log("appending clone")
+		document.body.appendChild(Polymer.dom(document.body.firstChild).cloneNode(true));
+		console.log("appending same")
+		document.body.appendChild(document.body.firstChild);
+	  }, 5000);
+  </script>
+</head>
+<body>
+	<paper-icon-button icon="favorite" title="heart"></paper-icon-button>
+
+	<!--ir-gallery style="width : 300px; height : 300px">
+		<img src="http://lorempixel.com/one/800/600/">
+	</ir-gallery-->
+	<ir-gallery style="width : 300px; height : 300px">
+		<img src="http://lorempixel.com/one/800/600/">
+		<img src="http://lorempixel.com/two/600/800/">
+		<figure><img src="http://lorempixel.com/three/800/600/"><figcaption>some fig 1</figcaption></figure>
+		<img src="http://lorempixel.com/four/800/600/">
+		<img src="http://lorempixel.com/five/800/600/">
+		<figure><img src="http://lorempixel.com/six/800/600/"><figcaption>some fig 2</figcaption></figure>
+		<figure><img src="http://lorempixel.com/seven/800/600/"><figcaption>some fig 3</figcaption></figure>
+		<img src="http://lorempixel.com/eight/800/600/">
+		<img src="http://lorempixel.com/nine/800/600/">
+	</ir-gallery>
+	<ir-gallery>
+		<img src="http://lorempixel.com/one/800/600/">
+		<img src="http://lorempixel.com/two/800/600/">
+		<figure><img src="http://lorempixel.com/three/800/600/"><figcaption>some fig 1</figcaption></figure>
+		<img src="http://lorempixel.com/four/800/600/">
+		<img src="http://lorempixel.com/five/800/600/">
+		<figure><img src="http://lorempixel.com/six/800/600/"><figcaption>some fig 2</figcaption></figure>
+		<figure><img src="http://lorempixel.com/seven/800/600/"><figcaption>some fig 3</figcaption></figure>
+		<img src="http://lorempixel.com/eight/800/600/">
+		<img src="http://lorempixel.com/nine/800/600/">
+	</ir-gallery>
+	<!-- div class="small">
+		<ir-gallery>
+		<img src="http://lorempixel.com/one/800/600/">
+		<img src="http://lorempixel.com/two/800/600/">
+		<figure><img src="http://lorempixel.com/three/800/600/"><figcaption>some fig 1</figcaption></figure>
+		<img src="http://lorempixel.com/four/800/600/">
+		<img src="http://lorempixel.com/five/800/600/">
+		<figure><img src="http://lorempixel.com/six/800/600/"><figcaption>some fig 2</figcaption></figure>
+		<figure><img src="http://lorempixel.com/seven/800/600/"><figcaption>some fig 3</figcaption></figure>
+		<img src="http://lorempixel.com/eight/800/600/">
+		<img src="http://lorempixel.com/nine/800/600/">
+		</ir-gallery>
+	</div>
+	<div class="mid">
+		<ir-gallery>
+		<img src="http://lorempixel.com/one/800/600/">
+		<img src="http://lorempixel.com/two/800/600/">
+		<figure><img src="http://lorempixel.com/three/800/600/"><figcaption>some fig 1</figcaption></figure>
+		<img src="http://lorempixel.com/four/800/600/">
+		<img src="http://lorempixel.com/five/800/600/">
+		<figure><img src="http://lorempixel.com/six/800/600/"><figcaption>some fig 2</figcaption></figure>
+		<figure><img src="http://lorempixel.com/seven/800/600/"><figcaption>some fig 3</figcaption></figure>
+		<img src="http://lorempixel.com/eight/800/600/">
+		<img src="http://lorempixel.com/nine/800/600/">
+		</ir-gallery>
+	</div>
+	<div class="large">
+		<ir-gallery>
+		<img src="http://lorempixel.com/one/800/600/">
+		<img src="http://lorempixel.com/two/800/600/">
+		<figure><img src="http://lorempixel.com/three/800/600/"><figcaption>some fig 1</figcaption></figure>
+		<img src="http://lorempixel.com/four/800/600/">
+		<img src="http://lorempixel.com/five/800/600/">
+		<figure><img src="http://lorempixel.com/six/800/600/"><figcaption>some fig 2</figcaption></figure>
+		<figure><img src="http://lorempixel.com/seven/800/600/"><figcaption>some fig 3</figcaption></figure>
+		<img src="http://lorempixel.com/eight/800/600/">
+		<img src="http://lorempixel.com/nine/800/600/">
+		</ir-gallery>
+	</div>
+	<ir-gallery>
+	<img src="http://placehold.it/350x150">
+	<img src="http://placehold.it/3500x150">
+	<figure><img src="http://placehold.it/350x3500"><figcaption>some fig 1</figcaption></figure>
+	<img src="http://placehold.it/50x50">
+	<img src="http://placehold.it/350x150">
+	<figure><img src="http://placehold.it/350x150"><figcaption>some fig 2</figcaption></figure>
+	<figure><img src="http://placehold.it/350x150"><figcaption>some fig 3</figcaption></figure>
+	<img src="http://placehold.it/350x150">
+	<img src="http://placehold.it/350x150">
+	</ir-gallery>
+		<ir-gallery><figure><img src="http://lorempixel.com/one/400/400/"><figcaption>hi</figcaption></figure></ir-gallery-->
+
+<!--ir-gallery><div class="caption-wrapper"><img src="sample.jpg"><span class="caption">hi</span></div></ir-gallery>
+<ir-gallery><div class="caption-wrapper"><img src="sample.jpg"><span class="caption">hi</span></div></ir-gallery>
+<ir-gallery><div class="caption-wrapper"><img src="sample.jpg"><span class="caption">hi</span></div></ir-gallery-->
+</body>
+</html>
