@@ -19,7 +19,7 @@
 			overflow : hidden
 		}
 		
-		#contentNode { display : none }
+		#contentWrapper { display : none }
 		
 		.viewPort {
 			height :600px;
@@ -123,7 +123,7 @@
 		<div id="container">
 			<div class="viewPort" id="inlineContainer"></div>
 			<paper-dialog id="dialog" on-iron-overlay-opened='openedDialog' with-backdrop><div class="viewPort" id="dialogContainer"></div></paper-dialog>
-			<div id="contentNode"><content></content></div>
+			<div id="contentWrapper"><content id="contentNode"></content></div>
 		</div>
 	</template>
 
@@ -249,13 +249,13 @@
 			is : 'ir-gallery',
 
 			properties : {
-				images  		: 	{ type : Array, value : function() { return [] } },
 				theme 			:	{ type : String, notify : true, value : "default" },
-				themes 			: 	{ type : Object, value : themes },
-				ratio 			: 	{ type : Number, value : .8 },
+				themeWaitTime   :   { type : Number, value : 5000 },
 				currentPage 	: 	{ type : Number, value : 0 },
-				sectionsData 	: 	{ type : Object, value : sectionsDataStore },
-				themeWaitTime   :   { type : Number, value : 5000 }
+				ratio 			: 	{ type : Number, value : .8 },
+				themes 			: 	{ type : Object, value : themes },
+				images  		: 	{ type : Array, value : function() { return [] } },
+				sectionsData 	: 	{ type : Object, value : sectionsDataStore }
 			},
 			
 			behaviors : [
@@ -266,10 +266,13 @@
 			},
 			
 			attached : function () {
-				this.scanForImages();
+				//this.scanForImages();
 
-				this.showSection('inline', function() {
-					this.async(function() {
+				this._observeLocalDom();
+				
+				//return;
+				//this.showSection('inline', function() {
+				//	this.async(function() {
 						// observe resize
 						new ResizeSensor(this.offsetParent, function() {
 							this.debounce('ResizeSensor', function() { 
@@ -277,18 +280,36 @@
 								this.showSection(); 
 							}, 300);
 						}.bind(this))
-					}, 300);
-				}.bind(this));
-
-				return;
-				// observe nodes
-				Polymer.dom(this.$.contentNode).observeNodes(function(info) {
-					this.destroyScrollers();
-					this.scanForImages();
-					this.setDirty('images');
-				}.bind(this))
+				//	}, 300);
+				//}.bind(this));
 			},
-						
+			
+			_observeLocalDom : function() {
+				// observe nodes
+				
+				this._domOberver = 
+					Polymer.dom(this.$.contentNode).observeNodes(function(info) {
+						if(this._muteObserver)
+							return;
+						this.cancelDebouncer('observeNodes');
+						this.debounce('observeNodes', function() {
+							this._muteObserver = true;
+							this.resetAll();
+							this.scanForImages();
+							this.setDirty('images');
+							this.showSection(null, function() {
+								Polymer.dom.flush();
+								this.async(function() { this._muteObserver = false; }, 500);
+							}.bind(this));
+						}, 300);
+					}.bind(this))
+			},
+
+			observeLocalDom : function(bool) {
+				this._muteObserver = bool;
+				//Polymer.dom(this.$.contentNode).unobserveNodes(this._domObserver);
+			},
+			
 			showSection : function(sectionName, callback) {
 				this.forEachSection(function(sd) {
 					// section not initialized or theme changed
@@ -311,7 +332,7 @@
 
 			resetAll : function(sectionName) {
 				this.destroyScrollers(sectionName);
-				this.clearDisplayAreas(sectionName);
+				this.clearSections(sectionName);
 				this.resetDimensions(sectionName);
 			},
 			
@@ -371,9 +392,10 @@
 				}.bind(this), sectionName);
 			},
 
-			
 			// fills section into container or dimensions given in its css
 			fillSectionContent : function fillSectionContent(sectionName) {
+				this.observeLocalDom(false);
+
 				this.forEachDisplayArea(function(da) {
 				
 					this.populateDisplayArea(da);
@@ -384,6 +406,8 @@
 				}.bind(this), sectionName); 
 
 				this.sectionsData[sectionName].initialized = true;
+				
+				this.observeLocalDom(true);
 			},
 			
 			// fits section into container or dimensions given in its css
@@ -622,24 +646,37 @@
 			
 			/* destroys all iscroll objects */
 			destroyScrollers : function destroyScrollers(sectionName) {
-				this.forEachScroller(function(s) { s.destroy(); }, sectionName);
+				this.forEachDisplayArea(function(da) { 
+					da.scroller = null; 
+					
+					if(!da.iscroll)
+						return;
+						
+					da.iscroll.destroy(); 
+					da.iscroll = null; 
+				}, sectionName);
 			},
 
 			/* clear both or one of the containers */
-			clearDisplayAreas : function clearDisplayAreas(sectionName) {
+			clearSections : function clearSections(sectionName) {
 				this.forEachSection(function(s) {
 					if(s.container) s.container.innerHTML = '';
+					s.theme = null;
 				}, sectionName);
 			},
 			
 			/* sync all scrollers to this.currentPage */
 			syncScrollers : function syncScrollers() {
 				this.cancelDebouncer('syncScrollers');
-					this.debounce('syncScrollers', function() {
-						this.forEachScroller(function(s) {
-							s.goToPage(this.currentPage, 0); 
-						}.bind(this))
-					}.bind(this), 100)
+				this.debounce('syncScrollers', function() {
+					this._syncingScrollers;
+					this.forEachScroller(function(s) {
+						s.goToPage(this.currentPage, 0);
+						this.async(function() {
+							this._syncingScrollers = false;
+						}, 400);
+					}.bind(this))
+				}.bind(this), 200)
 			},
 			
 			/*
@@ -660,6 +697,9 @@
 			/* upgrades scroller element to iscroll */
 			upgradeScroller : function upgradeScroller(da, callback)
 			{
+				if(da.iscroll)
+					return da.iscroll.refresh();
+
 				da.wrapper.style.position = 'relative'
 				da.wrapper.style.overflow = 'hidden'; 
 				da.scroller.style.position = 'relative'
@@ -676,23 +716,31 @@
 						keyBindings: da.name == 'dialog' && this.images.length > 1
 					});
 					
-					da.iscroll.refresh();
-				
-					if(this.images.length > 1)
+					this.async(function() {
+						da.iscroll.refresh();
+					}, 200);
+					
+					if(this.images.length > 1 && da.section == 'main')
 						da.iscroll.on('scrollEnd', function() { 
+							if(this._syncingScrollers)
+								return;
 							this.currentPage = da.iscroll.currentPage.pageX;
 							this.syncScrollers();
 						}.bind(this));
 					
 					if(callback) callback();
-				}, 300);									
+				}, 200);									
 			},
 
 			/* assign command to all selectors in target */
-			assignCommand : function assignCommand(target, selector, foo)
+			assignCommand : function assignCommand(target, selector, foo, name)
 			{
 				var els = Polymer.dom(target).querySelectorAll(selector);
 				els.forEach(function(el) {
+					if(el[name])
+						return;
+						
+					el[name] = true;
 					el.addEventListener('click', foo)
 				}.bind(this));
 			},
@@ -701,9 +749,8 @@
 			assignCommands : function assignCommands(target) {
 				'forward->nextPage,backward->prevPage,close->closeDialog'.split(/,/).forEach(function(cd) {
 					var c;
-					if(target[cd]) return;
 					c = cd.split(/->/);
-					this.assignCommand(target, '[command-' + c[0] + ']', this[c[1]].bind(this));
+					this.assignCommand(target, '[command-' + c[0] + ']', this[c[1]].bind(this), cd);
 					target[cd] = true;
 				}.bind(this));
 			},
