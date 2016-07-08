@@ -122,7 +122,7 @@
 	<template>
 		<div id="container">
 			<div class="viewPort" id="inlineContainer"></div>
-			<paper-dialog id="dialog" with-backdrop><div class="viewPort" id="dialogContainer"></div></paper-dialog>
+			<paper-dialog id="dialog" on-iron-overlay-opened='openedDialog' with-backdrop><div class="viewPort" id="dialogContainer"></div></paper-dialog>
 			<div id="contentNode"><content></content></div>
 		</div>
 	</template>
@@ -229,6 +229,7 @@
 	return {
 		name : sectioName,
 		template : null,
+		dirty : { images : true, size : true },
 		dimensions : dimensionsData(),
 		displayAreas : {
 			main 		: displayAreaData('main', sectioName),
@@ -254,6 +255,7 @@
 				ratio 			: 	{ type : Number, value : .8 },
 				currentPage 	: 	{ type : Number, value : 0 },
 				sectionsData 	: 	{ type : Object, value : sectionsDataStore },
+				themeWaitTime   :   { type : Number, value : 5000 }
 			},
 			
 			behaviors : [
@@ -264,33 +266,53 @@
 			},
 			
 			attached : function () {
-				this.resetDimensions();
-				
-				this.clearScrollers();
 				this.scanForImages();
 
-				this.applyTheme(function() {				
-					this.fillAndFit('inline');
-					
+				this.showSection('inline', function() {
 					this.async(function() {
 						// observe resize
 						new ResizeSensor(this.offsetParent, function() {
-							this.debounce('ResizeSensor', this.refit, 300);
+							this.debounce('ResizeSensor', function() { 
+								this.setDirty('size')
+								this.showSection(); 
+							}, 300);
 						}.bind(this))
-					});
+					}, 300);
 				}.bind(this));
-				
-				
-				
-				
-				return;
 
+				return;
 				// observe nodes
 				Polymer.dom(this.$.contentNode).observeNodes(function(info) {
-					this.clearScrollers();
+					this.destroyScrollers();
 					this.scanForImages();
-					this.init();
+					this.setDirty('images');
 				}.bind(this))
+			},
+						
+			showSection : function(sectionName, callback) {
+				this.forEachSection(function(sd) {
+					// section not initialized or theme changed
+					if(sd.theme != this.theme || sd.dirty.images)
+					{
+						this.resetAll(sd.name);
+						
+						this.applyTheme(sd.name, function() {
+							this.fillAndFit(sd.name);
+							this.goToPage(this.currentPage);
+
+							if(callback)
+								callback();
+						}.bind(this));
+					}
+					if(sd.dirty.size)
+						this.refit();
+				}.bind(this), sectionName);
+			},
+
+			resetAll : function(sectionName) {
+				this.destroyScrollers(sectionName);
+				this.clearDisplayAreas(sectionName);
+				this.resetDimensions(sectionName);
 			},
 			
 			// fits the section into its container and fills out images&scrollers
@@ -300,23 +322,28 @@
 				this.styleSectionContent(sectionName);
 
 				this.assignCommands(this.sectionsData[sectionName].container);
-				
-				//Polymer.dom(da.scroller).appendChild(slide);
-				// this.fill(sectionName);
 			},
 			
-			refit : function() {
-				this.resetDimensions.call(this);
-				this.fitSectionContent('inline');
-				this.styleSectionContent('inline');
+			refit : function(sectionName) {
+				this.resetDimensions(sectionName);
+				this.forEachSection(function(section) {
+					if(!section.initialized) // not initialized
+						return;
+						
+					this.fitSectionContent(section.name);
+					this.styleSectionContent(section.name);
+				}.bind(this), sectionName);
+				this.forEachScroller(function(s) {
+					s.refresh();
+				}.bind(this), sectionName)
 			},
 			
-			resetDimensions : function() {
+			resetDimensions : function(sectionName) {
 				this.forEachDisplayArea(function(da) {
-					Object.keys(da.dimensions).forEach(function(da, type) {
+					Object.keys(da.dimensions).forEach(function(type) {
 						da.dimensions[type] = dimensionsData();
-					}.bind(this, da))
-				}); 
+					}, sectionName)
+				}.bind(this)); 
 			},
 
 			// styles section content in a non-destructive manner
@@ -327,7 +354,6 @@
 					this.scopeSubtree(da.wrapper, true);
 
 					da.slides.forEach(function(slideData) {
-
 						this.setSize(slideData.slide, size);
 						this.setSize(slideData.wrapper, size);
 
@@ -338,23 +364,30 @@
 							this.setSize(slideData.image, { width : size.width, height : size.height * this.ratio });
 							this.setSize(slideData.caption, { width : size.width, height : size.height * (1 - this.ratio) });
 						}
+						slideData.slide.display = 'block';
+						slideData.slide.style.textAlign = 'center';
+						
 					}.bind(this));
 				}.bind(this), sectionName);
 			},
 
 			
 			// fills section into container or dimensions given in its css
-			fillSectionContent : function(sectionName) {
+			fillSectionContent : function fillSectionContent(sectionName) {
 				this.forEachDisplayArea(function(da) {
-					console.log('filling ', da.name)
+				
 					this.populateDisplayArea(da);
 					this.populateSlides(da);
 					this.upgradeScroller(da);
+				
+					this.clearDirty('images', da.sectionName);
 				}.bind(this), sectionName); 
+
+				this.sectionsData[sectionName].initialized = true;
 			},
 			
 			// fits section into container or dimensions given in its css
-			fitSectionContent : function(sectionName) {
+			fitSectionContent : function fitSectionContent(sectionName) {
 				var container, minh, minw, fminh, fminw, t, bcr,
 					dialogMode = sectionName == 'dialog', takesh, takesw;
 				
@@ -371,25 +404,30 @@
 					fminh(this.style.height && this.style.height.replace(/px/, ''));
 					fminw(this.style.width && this.style.width.replace(/px/, ''));
 				}
+				else
+				{
+					if(dialogMode && this.$.dialog.opened)
+						this.setSize(this.$.dialog, { width : document.body.clientWidth, height : document.body.clientHeight});
+				}
 				
 				fminh(document.body.clientHeight);
 				fminw(document.body.clientWidth);
 
 				t = container.offsetParent;
-				
-				do {
-					bcr = t.getBoundingClientRect();
-					fminw(bcr.width);
-					fminh(bcr.height)
-					fminw(t.clientWidth)
-					fminh(t.clientHeight)
-					t = t.offsetParent;
-				} while(t);
+				if(t)
+					do {
+						bcr = t.getBoundingClientRect();
+						fminw(bcr.width);
+						fminh(bcr.height)
+						fminw(t.clientWidth)
+						fminh(t.clientHeight)
+						t = t.offsetParent;
+					} while(t);
 				
 				this.forEachDisplayArea(function(da) {
 					if(da.wrapper)
 						da.wrapper.style.height = 0;
-				});
+				}, sectionName);
 				
 				container.style.height = 0;
 				container.style.width = 0;
@@ -412,59 +450,15 @@
 				}.bind(this), sectionName);
 			},
 			
-			x_refit : function(section) {
-				// this.$.container.style.visibility = "hidden";
-				this.debounce('refit', function() {
-					var cont = this.$[section + "Container"],
-						hNeedsRefit = this.dimensions[section].wanted.height < cont.scrollHeight;
-					
-					this.dimensions[section].refit.height = 2 * this.dimensions[section].wanted.height - cont.scrollHeight;
-
-					console.log('needs refit: ', hNeedsRefit, 'container height: ', cont.scrollHeight, "should refit content to", this.dimensions[section].refit.height);
-					
-					//console.log("height did fit: ", hNeedsRefit);
-					//this._refitHeight = 2 * this._height - cont.scrollHeight;
-					//this._refitWidth = 2 * this._width - cont.scrollWidth;
-	
-					if(hNeedsRefit)
-						this.init(section);
-					else
-					{
-						this.debounce('visibility' + section, function() {
-							this.$.container.style.visibility = "visible";
-						}, 100);
-					}
-				}.bind(this), 100);
-			},
-			
-			init : function(section) {
-				var initialized, apply;
-				
-				return;
-				
-				if(!section)
-					section = 'inline';
-				
-				//this.$.container.style.visibility = "hidden";
-				
-			},
-
-			clearAll : function(filter) {
-				this.clearScrollers(filter);
-				if(!filter || filter == 'inline') Polymer.dom(this.$.inlineContainer).innerHTML = '';
-				if(!filter || filter == 'dialog') Polymer.dom(this.$.dialogContainer).innerHTML = '';
-				Polymer.dom.flush();
-			},
-			
-			isCaptionWrapper : function(el) {
+			isCaptionWrapper : function isCaptionWrapper(el) {
 				return el.nodeName == 'FIGURE';
 			},
 			
-			getCaptionHTML : function(el) {
+			getCaptionHTML : function getCaptionHTML(el) {
 				return Polymer.dom(Polymer.dom(el).querySelector('figcaption')).innerHTML;
 			},
 			
-			getImageCaption : function(img) {
+			getImageCaption : function getImageCaption(img) {
 				var captionHolder, captonChildren = [];
 				if(this.isCaptionWrapper(img.parentNode))
 					return Polymer.dom(Polymer.dom(img.parentNode).querySelector('figcaption')).innerHTML;
@@ -472,7 +466,7 @@
 				return;
 			},
 			
-			scanForImages : function() {
+			scanForImages : function scanForImages() {
 				var imgs = Polymer.dom(this).querySelectorAll('img');
 				
 				this.images = [];
@@ -489,16 +483,17 @@
 			},
 			
 			/*
-				apply theme to all sections of target, where target is 'inline' or 'dialog'
+				apply theme to all initialized sections
+				waits for theme to be initialized 
 			*/
-			applyTheme : function(callback) {
+			applyTheme : function applyTheme(sectionName, callback) {
 				var initialized, apply;
 				
 				apply = function() { 
 					if(initialized)
 						return;
 					
-					this._applyTheme('inline');
+					this.applyThemeToSection(sectionName);
 					initialized = true;
 					
 					if(callback)
@@ -509,7 +504,7 @@
 					if(this.$.dialog.opened)
 					{
 						this.async(function() {
-							this._applyTheme('dialog', this.refit.bind(this, 'dialog'));
+							this.applyThemeToSection('dialog', this.refit.bind(this, 'dialog'));
 						}, 100);
 					}
 				}.bind(this);
@@ -523,130 +518,47 @@
 							apply(); //(themes[this.theme].inline, themes[this.theme].dialog, true);
 					}.bind(this));
 
-					// if nothing happened within 5 seconds the template is probably not available and we should use the default
-					this.async(apply, 5000);
+					// if nothing happened within themeWaitTime milliseconds the template is probably not available and we should use the default
+					this.async(apply, this.themeWaitTime);
 				}
 			},
 			
-			_applyTheme : function(sectionName, callback) {				
-				var instance, section;
-				
-				section = this.$[sectionName + "Container"];
-				
-				this.sectionsData[sectionName].template = this.themes[this.theme][sectionName]; // y?
-				this.sectionsData[sectionName].container = section;
-				
-				instance = this.stampThemeSection(section, this.themes[this.theme][sectionName]);
-				//this.debounce('applyTheme' + sectionName, function() {
-					var sd = this.sectionsData[sectionName];
-					sd.displayAreas.main.wrapper = Polymer.dom(section).querySelector('.main');
-					sd.displayAreas.thumbnails.wrapper = Polymer.dom(section).querySelector('.thumbnails');
-					//callback(instance);
-					//this.section
-				//}, 100)
+			/*
+				populates theme section with the section's theme template
+			*/
+			applyThemeToSection : function applyThemeToSection(sectionName) {				
+				this.forEachSection(function(sd) {
+					var instance, section, sd;
+
+					section = sd.container;
+					
+					if(sd.theme == this.theme)
+						return;
+
+					sd.container = this.$$("#" + sd.name + "Container")
+					
+					this.sectionsData[sd.name].template = this.themes[this.theme][sd.name]; // y?
+					
+					instance = this.stampThemeSection(sd.container, this.themes[this.theme][sd.name]);
+
+					sd.displayAreas.main.wrapper = Polymer.dom(sd.container).querySelector('.main');
+					sd.displayAreas.thumbnails.wrapper = Polymer.dom(sd.container).querySelector('.thumbnails');
+					
+					sd.theme = this.theme;
+				}.bind(this), sectionName);
 			},
-				
-			styleThemeSection : function() {
-					var themeData = this.themes[this.theme],
-						w, h, min, t, minw, minh, pic, stampRes,
-						container, toStyle, hcmd, invratio, invratiosq, 
-						cs, margins, bcr, fminh, fminw, opts;
-					
-					// calculate container size
-					var dialogMode = sectionName == 'dialog';
 
-					container = this.$[sectionName + "Container"];
-					
-					minh = this.dimensions[sectionName].refit.height;
-					minw = Infinity;
-					
-					fminh = function(val) { minh = Math.min(minh, val) || val || minh } // these help us see the trees behind the forest
-					fminw = function(val) { minw = Math.min(minw, val) || val || minw }
-					
-					if(!dialogMode)
-					{
-						fminh(this.style.height && this.style.height.replace(/px/, ''));
-						fminw(this.style.width && this.style.width.replace(/px/, ''));
-					}
-					
-					fminh(document.body.clientHeight);
-					fminw(document.body.clientWidth);
-
-					t = container.offsetParent;
-					
-					do {
-						bcr = t.getBoundingClientRect();
-						fminw(bcr.width);
-						fminh(bcr.height)
-						fminw(t.clientWidth)
-						fminh(t.clientHeight)
-						t = t.offsetParent;
-					} while(t);
-					
-					min = Math.min(minw, minh);
-					h = w = min;
-					
-					if(!this.dimensions[sectionName].wanted.height)
-						this.dimensions[sectionName].wanted.height = h;
-	
-					this.scrollers[sectionName] = {};
-					
-					opts = { 
-								section : sectionName, 
-								size : min, 
-								slideWidth : minw, 
-								dialogMode : dialogMode 
-							};
-					
-					this.stampThemeSection(container, themeData[sectionName], opts);
-
-					return;
-					this.populateThemeSection(container, opts)
-					
-					//dialog = this.stampThemeSection(this.$.dialogContainer, themeData.dialog, .35 * min);
-					
-					container.style.width = minw + 'px';
-					container.style.height = this.dimensions[sectionName].wanted.height + 'px';
-					
-					pic = Polymer.dom(container);
-					
-					toStyle = {};
-					toStyle.main = pic.querySelector('.main').style;
-					toStyle.commands = pic.querySelector('.commands').style;
-					toStyle.thumbnails = pic.querySelector('.thumbnails').style;
-					
-					if(this.images.length <= 1)
-					{	
-						t = Polymer.dom(pic).querySelectorAll('.commands')
-							.forEach(function(t) { 
-								Polymer.dom(Polymer.dom(t).parentNode).removeChild(t) 
-							});
-					}
-					
-					//this.setSizeToParentClientSize([pic.querySelector('.main'), pic.querySelector('.commands'), pic.querySelector('.main')])
-					
-					toStyle.main.width = toStyle.thumbnails.width = toStyle.commands.width = minw + "px";
-					toStyle.main.height = (this.images.length > 1 ? this._ratio : 1) * h + "px";
-
-					invratio = 1 - this._ratio;
-					invratiosq = invratio * invratio;
-
-					if(!dialogMode)
-						Polymer.dom(this.root).querySelector('.viewPort').style.height = this._wantedHeight;
-				
-					if(callback)
-						callback.call(this);
-				//}.bind(this), 100);
-			},
-			
-			nextPage : function(page) {
+			/* Go to next page, circular */
+			nextPage : function nextPage(page) {
 				var p = this.currentPage, 
 					l = this.images.length - 1;
 				
 				p = p >= l ? 0 : p + 1; 
 				this.goToPage(p);
 			},
-			prevPage : function(page) {
+
+			/* Go to prev page, circular */
+			prevPage : function prevPage(page) {
 				if(this.images.length <= 1)
 					return
 				var p = this.currentPage, 
@@ -656,25 +568,28 @@
 				this.goToPage(p)
 			},
 			
-			goToPage : function(page) {
+			/* Go to page by number, zero-based */
+			goToPage : function goToPage(page) {
 				if(this.images.length <= 1)
 					return
 				this.currentPage = page;
 				this.syncScrollers();
 			},
 			
-			forEachSection : function(foo, sections) {
-				if(!sections)
-					sections = ['inline', 'dialog'];
-				if(!(sections instanceof Array))
-					sections = [sections];
+			/* visit each or only one section, calls the visitor function with sectionData object for each section */
+			forEachSection : function forEachSection(foo, sectionName) {
+				if(!sectionName)
+					sectionName = ['inline', 'dialog'];
+				if(!(sectionName instanceof Array))
+					sectionName = [sectionName];
 					
-				sections.forEach(function(s) { 
+				sectionName.forEach(function(s) { 
 					foo(this.sectionsData[s]) 
 				}.bind(this));
 			},
 
-			forEachDisplayArea : function(foo, section) {
+			/* visit each display area, calls the visitor function with displayAreaData object for each section */
+			forEachDisplayArea : function forEachDisplayArea(foo, sectionName) {
 				this.forEachSection(function(s) {
 					Object.keys(s.displayAreas)
 						.forEach(function(da) { 
@@ -682,39 +597,56 @@
 							if(q) 
 								foo(q); 
 						}.bind(this));
-				}, section);
+				}, sectionName);
 			},
 			
-			forEachScroller : function(foo) {
+			/* visit each scroller, calls the visitor function with iscroll object */
+			forEachScroller : function forEachScroller(foo, sectionName) {
 				this.forEachDisplayArea(function(da) {
-					if(da.iscroll)
+					if(da.iscroll && da.scroller.clientWidth)
 						foo(da.iscroll);
-				});
+				}, sectionName);
 			},
 			
-			// section is 'inline' or 'dialog'
-			clearScrollers : function() {
-				this.forEachScroller(function(s) { s.destroy(); });
+			setDirty : function setDirty(property, sectionName) {
+				this.forEachSection(function(s) {
+					s.dirty[property] = true;
+				}, sectionName);
 			},
 			
-			syncScrollers : function() {
-				/*var 
-					alls = this.scrollers, 
-					s = alls[section];
-					
-				this.currentPage = s[sourceScroller].currentPage.pageX || 0;
-				*/
-				
-				this.forEachScroller(function(s) {
-					s.goToPage(this.currentPage, 0); 
-				}.bind(this));
+			clearDirty : function clearDirty(property, sectionName) {
+				this.forEachSection(function(s) {
+					s.dirty[property] = false;
+				}, sectionName);
+			},
+			
+			/* destroys all iscroll objects */
+			destroyScrollers : function destroyScrollers(sectionName) {
+				this.forEachScroller(function(s) { s.destroy(); }, sectionName);
+			},
+
+			/* clear both or one of the containers */
+			clearDisplayAreas : function clearDisplayAreas(sectionName) {
+				this.forEachSection(function(s) {
+					if(s.container) s.container.innerHTML = '';
+				}, sectionName);
+			},
+			
+			/* sync all scrollers to this.currentPage */
+			syncScrollers : function syncScrollers() {
+				this.cancelDebouncer('syncScrollers');
+					this.debounce('syncScrollers', function() {
+						this.forEachScroller(function(s) {
+							s.goToPage(this.currentPage, 0); 
+						}.bind(this))
+					}.bind(this), 100)
 			},
 			
 			/*
 				stamp theme template into section
 				returns template instance (Polymer.base)
 			*/
-			stampThemeSection : function(container, template) {
+			stampThemeSection : function stampThemeSection(container, template) {
 				var instance, t;
 				t = template;		
 				
@@ -725,24 +657,22 @@
 				return instance;
 			},
 			
-			upgradeScroller : function(da, callback)
+			/* upgrades scroller element to iscroll */
+			upgradeScroller : function upgradeScroller(da, callback)
 			{
-				this.async( function(target) {
-					var scrollers = {};
-					
-					da.wrapper.style.position = 'relative'
-					da.scroller.style.position = 'relative'
-					da.scroller.style.width = da.dimensions.slide.width * this.images.length
-					//da.wrapper.style.position = 'relative'; 
-					da.wrapper.style.overflow = 'hidden'; 
-					
+				da.wrapper.style.position = 'relative'
+				da.wrapper.style.overflow = 'hidden'; 
+				da.scroller.style.position = 'relative'
+				da.scroller.style.width = da.dimensions.slide.width * this.images.length
+
+				this.async( function ugradeScrollerAsync(target) {
 					da.iscroll = new IScroll(da.wrapper, {
 						mouseWheel: true,
 						scrollX: this.images.length > 1,
 						scrollY: false,
 						momentum: true,
 						snap: ".slide",
-						snapSpeed: 500,
+						snapSpeed: 300,
 						keyBindings: da.name == 'dialog' && this.images.length > 1
 					});
 					
@@ -750,18 +680,16 @@
 				
 					if(this.images.length > 1)
 						da.iscroll.on('scrollEnd', function() { 
-							this.cancelDebouncer('scrollEnd'); 
-							this.debounce('scrollEnd', function() { 
-								this.currentPage = da.iscroll.currentPage.pageX;
-								this.syncScrollers();
-							}.bind(this), 600);
+							this.currentPage = da.iscroll.currentPage.pageX;
+							this.syncScrollers();
 						}.bind(this));
 					
 					if(callback) callback();
-				}, 300);													
+				}, 300);									
 			},
 
-			assignCommand : function(target, selector, foo)
+			/* assign command to all selectors in target */
+			assignCommand : function assignCommand(target, selector, foo)
 			{
 				var els = Polymer.dom(target).querySelectorAll(selector);
 				els.forEach(function(el) {
@@ -769,38 +697,34 @@
 				}.bind(this));
 			},
 			
-			assignCommands : function(target) {
-				this.async(function() {
-					var commandsEl = Polymer.dom(target).querySelectorAll('.commands');
-					if(!commandsEl.length)
-						return;
-					//commandsEl.forEach(function() {
-					this.assignCommand(target, '[command-forward]', this.nextPage.bind(this));
-					this.assignCommand(target, '[command-backward]', this.prevPage.bind(this))
-					this.assignCommand(target, '[command-close]', this.closeDialog.bind(this))
-				},100)
-				//}.bind(this))
+			/* assign standard commands to marked elements in target. mark with command-forward, command-backward  */
+			assignCommands : function assignCommands(target) {
+				'forward->nextPage,backward->prevPage,close->closeDialog'.split(/,/).forEach(function(cd) {
+					var c;
+					if(target[cd]) return;
+					c = cd.split(/->/);
+					this.assignCommand(target, '[command-' + c[0] + ']', this[c[1]].bind(this));
+					target[cd] = true;
+				}.bind(this));
 			},
 
 			closeDialog : function () {
 				this.$.dialog.close();
 			},
-			openDialog : function ()
-			{
+
+			openedDialog : function openedDialog() {
 				var size = Math.min(document.body.clientWidth, document.body.clientHeight);
-				
-				this.$.dialog.open();
-				
-				if(this.scrollers.dialog)
-					return this.goToPage(this.currentPage);
-					
+				this.setSize(this.$.dialog, size);
+		
 				this.$.dialog.style.width = document.body.clientWidth;
 				this.$.dialog.style.height = document.body.clientHeight;
-				this.applyTheme('dialog', function() {
-					this.refit('dialog');
-					this.goToPage(this.currentPage)
-				}.bind(this));
 				
+				this.showSection('dialog');
+			},
+
+			openDialog : function openDialog()
+			{
+				this.$.dialog.open();				
 			},
 			
 			setSize : function(el, size)
@@ -812,22 +736,6 @@
 				el.style.height = size.height;
 				
 				return el;
-			},
-			
-			setSizeToParentClientSize : function(nodes) 
-			{
-				if(!(nodes instanceof Array))
-				{
-					if(nodes.length)
-						nodes = [].slice.call(nodes);
-					else
-						nodes = [nodes];
-				}
-				
-				nodes.forEach(function(n) {
-					n.width = n.parentOffset.clientWidth
-					n.height = n.parentOffset.clientHeight
-				});
 			},
 			
 			// creates a slide from data. returns slideData
@@ -880,34 +788,22 @@
 				da.slides = [];
 				
 				// add slides to scroller
-				this.images.forEach(function(imgData) {
+				this.images.forEach(function(imgData, index) {
 					var slideData = this.slideFromData(imgData, da.dimensions[thumbMode ? 'wrapper' : 'slide'], thumbMode);
 					da.slides.push(slideData);
-					Polymer.dom(da.scroller).appendChild(slideData.slide);
-				}.bind(this));
-			},
-			
-			styleSlides : function(da) {
-				this.slides.forEach(function(slideData) {
-					Polymer.dom(slideData.slide).classList.add('slide');
-					//slideData.caption && Polymer.dom(slideData.caption).classList.add(this.themes[this.theme].scopeClass);
-
-					w = opts.slideWidth || opts.size;
-					h = opts.size * (hasCaption ? this._ratio * 1.3 : 1);
-
-					caption.style.height  = opts.height * this.ratio;
-					wrapper.style.height = h - caption.offsetHeight;
-					imgel.style.height = h - caption.offsetHeight;
 					
-					this.setSize(slide, { width : w, height : h }); //* (opts.noCaption ? this._ratio : 1) });				
-					this.setSize(imgel, { width : w, height : h }); //* (opts.noCaption ? this._ratio : 1) });				
-					this.setSize(wrapper, { width : w, height : h});				
-
-					slide.display = 'block';
-					slide.style.textAlign = 'center';
-				}.bind(this));
+					slideData.slide.addEventListener('click', function() {
+						if(thumbMode)
+							this.goToPage(index);
+						else
+						if(da.section != 'dialog')
+							this.openDialog();
+					}.bind(this));
+					
+					Polymer.dom(da.scroller).appendChild(slideData.slide);
+				}.bind(this));				
 			},
-			
+						
 			// populates a scroller/thumbnails container
 			//
 			// opts: selector, size, noCaption, onClick
@@ -918,9 +814,6 @@
 				
 				// remember: wrapper -> scroller -> slides, and iScroll is initialized on wrapper
 				Polymer.dom(da.wrapper).classList.add('wrapper');
-				
-				if(da.scroller)
-					da.scroller.destroy();
 				
 				// create wrapper in scroller
 				scroller = document.createElement('div');
@@ -936,37 +829,7 @@
 				da.scroller = scroller;
 			
 				Polymer.updateStyles();
-			},
-			
-			goBack : function(e) {
-			},
-
-			goForward : function(e) {
-
-			}, 
-
-			keyNav : function(e) {
-			  if(e.keyCode == 37)
-			  {
-				this.pageToSwap -= 1;
-				if(this.pageToSwap < 0)
-				  this.pageToSwap = this.images.length - 1;
-				this.$['gallery-thumbnails'].scroll.prev();
-				this.goToPage('gallery-scroller', this.pageToSwap);
-				this.selectGalleryThumb(this.pageToSwap);
-			  }
-			  else
-				if(e.keyCode == 39)
-				{
-				  this.pageToSwap += 1;
-				  if(this.pageToSwap > (this.images.length - 1))
-					this.pageToSwap = 0;
-				  this.$['gallery-thumbnails'].scroll.next();
-				  this.goToPage('gallery-scroller', this.pageToSwap);
-				  this.selectGalleryThumb(this.pageToSwap);
-				}
-			},		  
-
+			}			
 		});
 })();		
 </script>
