@@ -266,22 +266,14 @@
 			},
 			
 			attached : function () {
-				//this.scanForImages();
-
 				this._observeLocalDom();
 				
-				//return;
-				//this.showSection('inline', function() {
-				//	this.async(function() {
-						// observe resize
-						new ResizeSensor(this.offsetParent, function() {
-							this.debounce('ResizeSensor', function() { 
-								this.setDirty('size')
-								this.showSection(); 
-							}, 300);
-						}.bind(this))
-				//	}, 300);
-				//}.bind(this));
+				new ResizeSensor(this.offsetParent, function() {
+					this.debounce('ResizeSensor', function() { 
+						this.setDirty('size')
+						this.showSection(); 
+					}, 300);
+				}.bind(this))
 			},
 			
 			_observeLocalDom : function() {
@@ -667,16 +659,10 @@
 			
 			/* sync all scrollers to this.currentPage */
 			syncScrollers : function syncScrollers() {
-				this.cancelDebouncer('syncScrollers');
-				this.debounce('syncScrollers', function() {
-					this._syncingScrollers;
-					this.forEachScroller(function(s) {
-						s.goToPage(this.currentPage, 0);
-						this.async(function() {
-							this._syncingScrollers = false;
-						}, 400);
-					}.bind(this))
-				}.bind(this), 200)
+				this._syncingScrollers;
+				this.forEachScroller(function(s) {
+					s.goToPage(this.currentPage, 0);
+				}.bind(this))
 			},
 			
 			/*
@@ -722,8 +708,6 @@
 					
 					if(this.images.length > 1 && da.section == 'main')
 						da.iscroll.on('scrollEnd', function() { 
-							if(this._syncingScrollers)
-								return;
 							this.currentPage = da.iscroll.currentPage.pageX;
 							this.syncScrollers();
 						}.bind(this));
