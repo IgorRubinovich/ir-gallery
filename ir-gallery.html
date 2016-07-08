@@ -21,6 +21,20 @@
 		
 		#contentWrapper { display : none }
 		
+		
+		.slide figure {
+			background : #F2F2F2;
+		}
+		.slide figcaption {
+			background : #F2F2F2;
+			color : #56646f;
+			display : flex;
+			justify-content : center;
+			align-items : center;
+			font-family : Arial;
+			font-size : x-small;
+		}
+		
 		.viewPort {
 			height :600px;
 			width : 400px;
@@ -118,6 +132,10 @@
 		
 		.wrapper {
 		}
+		
+		#container {
+			position : relative;
+		}
 	</style>
 	<template>
 		<div id="container">
@@ -196,7 +214,7 @@
 	  inlineTemplate.className = "";
 	  dialogTemplate.className = "";
 
-	  themes[this.name] = { inline : inlineTemplate, dialog : dialogTemplate, name : this.name };
+	  themes[this.name] = { inline : inlineTemplate, dialog : dialogTemplate, name : this.name, themeInstance : this };
 
 	  this.fire('ir-gallery-theme-ready', { inline : inlineTemplate, dialog : dialogTemplate, name : this.name });
 	}
@@ -374,8 +392,8 @@
 							this.setSize(slideData.image, size);
 						else
 						{
-							this.setSize(slideData.image, { width : size.width, height : size.height * this.ratio });
-							this.setSize(slideData.caption, { width : size.width, height : size.height * (1 - this.ratio) });
+							this.setSize(slideData.image, { width : size.width - 3, height : size.height * (this.ratio * 1.06) });
+							this.setSize(slideData.caption, { width : size.width - 3, height : size.height * (1 - (this.ratio * 1.06) ) });
 						}
 						slideData.slide.display = 'block';
 						slideData.slide.style.textAlign = 'center';
@@ -450,16 +468,20 @@
 				
 				takesh = container.scrollHeight
 				takesw = container.scrollWidth
-			
+						
 				container.style.height = minh;
 				container.style.width = minw;
 				
+				
+				
 				this.forEachDisplayArea(function(da) {
-					da.wrapper.style.width = minw;
-						da.dimensions.wrapper.width = minw;
+					da.wrapper.style.width
+						da.dimensions.wrapper.width 
+							= minw - 3;
 					
 					da.wrapper.style.height = 
-						da.dimensions.wrapper.height = (minh -takesh) * (da.name == 'main' ? this.ratio : 1 - this.ratio);
+						da.dimensions.wrapper.height 
+							= (minh -takesh) * (da.name == 'main' ? this.ratio : 1 - this.ratio);
 				
 					da.dimensions.slide.height = da.dimensions.wrapper.height;
 					da.dimensions.slide.width = da.name == 'main' ? minw : da.dimensions.slide.height * (minh / minw); 
@@ -544,7 +566,7 @@
 			*/
 			applyThemeToSection : function applyThemeToSection(sectionName) {				
 				this.forEachSection(function(sd) {
-					var instance, section, sd;
+					var instance, section, sd, dummySlide = {}, commands;
 
 					section = sd.container;
 					
@@ -557,6 +579,11 @@
 					
 					instance = this.stampThemeSection(sd.container, this.themes[this.theme][sd.name]);
 
+					if(this.images.length <= 1)
+					{
+						commands = sd.container.querySelector('.commands')
+						commands && (commands.style.display = 'none');
+					}
 					sd.displayAreas.main.wrapper = Polymer.dom(sd.container).querySelector('.main');
 					sd.displayAreas.thumbnails.wrapper = Polymer.dom(sd.container).querySelector('.thumbnails');
 					
@@ -609,11 +636,14 @@
 				this.forEachSection(function(s) {
 					Object.keys(s.displayAreas)
 						.forEach(function(da) { 
+							if(da == 'thumbnails' && this.images.length <= 1)
+								return;
+								
 							var q = s.displayAreas[da];
 							if(q) 
 								foo(q); 
 						}.bind(this));
-				}, sectionName);
+				}.bind(this), sectionName);
 			},
 			
 			/* visit each scroller, calls the visitor function with iscroll object */
@@ -698,18 +728,22 @@
 						scrollY: false,
 						momentum: true,
 						snap: ".slide",
-						snapSpeed: 300,
-						keyBindings: da.name == 'dialog' && this.images.length > 1
+						snapSpeed: 200,
+						deceleration : 0.0007,
+						keyBindings: da.name == 'main' && da.section == 'dialog' && this.images.length > 1
 					});
 					
 					this.async(function() {
 						da.iscroll.refresh();
 					}, 200);
 					
-					if(this.images.length > 1 && da.section == 'main')
+					if(this.images.length > 1 && da.name == 'main')
 						da.iscroll.on('scrollEnd', function() { 
-							this.currentPage = da.iscroll.currentPage.pageX;
-							this.syncScrollers();
+							this.cancelDebouncer('scrollEnd');
+							this.debounce('scrollEnd', function() {
+								this.currentPage = da.iscroll.currentPage.pageX;
+								this.syncScrollers();
+							}, 250)
 						}.bind(this));
 					
 					if(callback) callback();
@@ -750,7 +784,9 @@
 				this.$.dialog.style.width = document.body.clientWidth;
 				this.$.dialog.style.height = document.body.clientHeight;
 				
-				this.showSection('dialog');
+				this.showSection('dialog', function() {
+					this.goToPage(this.currentPage);
+				}.bind(this));
 			},
 
 			openDialog : function openDialog()
@@ -799,6 +835,8 @@
 				
 				if(opts.onclick)
 					slide.addEventListener("click", opts.onclick.bind(this));
+			
+				this.themes[this.theme].themeInstance.scopeSubtree(slide);
 			
 				return { 
 							slide : slide, 
@@ -859,7 +897,7 @@
 			
 				da.scroller = scroller;
 			
-				Polymer.updateStyles();
+				Polymer.updateStyles();			
 			}			
 		});
 })();		
@@ -876,11 +914,8 @@
 			<style> 
 				.main { display: flex; flex: 1; padding : 5px }
 				.commands { display: flex; justify-content : space-between;}
-				.slide { 
-					border : 3px solid green;
-				}
 				.thumbnails { display : flex, align-items : middle}
-				#inline-wrapper { background : #fafafa;  background : pink; margin-bottom : 2px }
+				#inline-wrapper { background : #fafafa; }
 			</style>
 			<div id="inline-wrapper">
 				<div class="main"></div> 
@@ -906,15 +941,18 @@
 				justify-content: center;
 			}
 			.canceldiv { text-align : right }
-			#dialog-wrapper { position : relative; background : white; border : 3px grey solid; border-radius : 5px; }
-
+			#dialog-wrapper { z-index : 1000; position : relative; background : white; border : 3px grey solid; border-radius : 5px; }
+			--slide-style {
+				border : green 3px solid;
+			}
+			
 		   </style> 
 		  <div id="dialog-wrapper"> 
 			<div class="main"></div>
 			<div class="commands"><paper-icon-button command-backward icon="chevron-left"></paper-icon-button><paper-icon-button command-forward icon="chevron-right"></paper-icon-button></div>
 			<div class="thumbnails"></div>
 			<div class='canceldiv'><paper-icon-button command-close icon="cancel"></paper-icon-button></div>
-		  </div> 
+		  </div>
 		</template>
 	  </ir-gallery-theme> 
 	  <ir-gallery-theme name="transparent"> 
