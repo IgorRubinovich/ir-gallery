@@ -1,0 +1,215 @@
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html"> 
+<link rel="import" href="../rv-iscroll/rv-iscroll.html" />
+<link rel="import" href="../iron-image/iron-image.html"> 
+<link rel="import" href="../paper-checkbox/paper-checkbox.html"> 
+<link rel="import" href="../paper-icon-button/paper-icon-button.html"> 
+<link rel="import" href="../paper-dialog/paper-dialog.html"> 
+<link rel="import" href="../iron-icons/iron-icons.html"> 
+<link rel="import" href="./ir-gallery-slider.html"> 
+<link rel="import" href="./ir-gallery-panel.html"> 
+<link rel="import" href="./ir-image-sizer.html"> 
+
+<!--
+	Structure (in jade-ish):
+	
+		ir-gallery
+		----------
+			ir-gallery-panel(inline)
+			
+			paper-dialog(fullScreen)
+				ir-gallery-panel(fullScreen)
+				
+			paper-dialog(zoom)
+				img // active image
+				
+		
+		ir-gallery-panel
+		----------------
+			ir-gallery-slider(main view)
+			buttons
+			ir-gallery-slider(thumbnails view)
+			
+			
+		ir-gallery-slider
+		-------------------
+			rv-iscroll // providing an instance of iScroll
+				template(is="dom-for")
+					<images>
+
+-->
+
+<dom-module id="ir-gallery">
+	<style>
+		:host {
+			box-sizing : border-box;
+		}
+		#fullScreenDialog {
+			width : 100vw;
+			height : 100vh;
+			margin : 0;
+			background : rgba(0,0,0,.3);
+		}
+		
+		#zoomDialog
+		{
+			width : 94vw;
+			height : 94vh;
+			overflow : auto;
+			margin : 0;
+			background : lightgrey;
+		}
+		
+		#zoomWrapper
+		{
+			text-align : center;
+		}
+
+		#zoomDialog img {
+			max-width : 100%;
+			height : auto;
+		}
+	</style>
+	<template>
+		<ir-gallery-panel 
+			id="inlineGallery" 
+			current-page="{{ currentPage }}"
+			on-slide-click="openDialog"
+			images="[[ images ]]"
+			width="[[ width ]]"
+			height="[[ height ]]"
+		></ir-gallery-panel>
+		<paper-dialog id="fullScreenDialog">
+			<template is="dom-if" if="[[ fullScreen ]]">
+				<ir-gallery-panel
+					id="dialogGallery"
+					current-page="{{ currentPage }}"
+					on-slide-click="zoom"
+					images="[[ images ]]"
+					width="100vw"
+					height="100vh"
+				></ir-gallery-panel>
+			</template>
+		</paper-dialog>
+		<paper-dialog id="zoomDialog">
+			<div id="zoomWrapper">
+				<img src="[[ zoomedImageSrc ]]">
+			</div>
+		</paper-dialog>
+	</template>
+	<script>
+	(function() {
+		Polymer({
+			is : "ir-gallery",
+			properties : {
+				currentPage : { type : Number, value : 0, notify : true },
+				images : { type : Array, value : [], notify : true },
+				
+				demo : { type : Boolean, value : true, notify : true },
+
+				sizingStyle : { type : String, value : "", notify : true },
+				width : { type : String, value : "400px", notify : true },
+				height : { type : String, value : "400px", notify : true },
+
+				slidesPerView : { type : Number, value : 1, notify : true },
+
+				slidesHeight : { type : String, value : "300px", notify : true },
+				thumbnailsHeight : { type : String, value : "100px", notify : true },
+
+				isReadyToDisplay : { type : Boolean, value : false, computed : "_isReadyToDisplay(images.length,width,height)" },
+
+				zoomedImageSrc : { type : String, value : "", notify : true },
+				fullScreen : { type : Boolean, value : false },
+			},
+			observers : ["_updateSize(width,height,slidesPerView,images.length)"],
+			zoom : function(e) {
+				this.set("zoomedImageSrc", e.detail.src);
+				this.$.zoomDialog.open();
+			},
+			openDialog : function() {
+				this.$.fullScreenDialog.open();
+				this.set('fullScreen', true);
+				
+				this.async(function() {
+					var dg = this.$$("#dialogGallery");
+					dg.refresh();
+					this.async(function() {
+						dg.goToPage(this.currentPage);
+					}, 200);
+				}, 200);
+				//this.$.dialogGallery.refresh();
+			},
+			
+			_isReadyToDisplay : function() {
+				return this.images.length && this.width && this.height
+			},
+			_updateSize : function() {
+				this.set("sizingStyle", "height : " + this.height + "; width : " + (this.slidesPerView <= 1 ? this.width : Units.divide(this.width, this.slidesPerView)) + ";");
+				
+				this.slidesHeight = Units.multiply(this.height, this.images.length > 1 ? .70 : 1);
+				this.thumbnailsHeight = Units.multiply(this.height, this.images.length > 1 ? .20 : 0);
+				
+				this.refresh();
+			},
+			refresh : function() {
+				if(!this.$.rvs)
+					return; //this.async(this.refresh, 500); // try again later
+			
+				this.$.scroller.refresh();
+				this.$.thumbnails.refresh();
+			},
+			attached : function() {
+				this._getImages();
+			},
+			_openFullScreen : function(e) {
+				console.log("full screen!", e.detail)
+			},
+			_goToPage : function(e) {
+				this.goToPage(e.detail.index);
+			},
+			next : function() {
+				var p = this.currentPage;
+				p = p >= this.images.length - 1 ? 0 : p + 1;
+				this.set("currentPage", p);
+			},
+			prev : function() {
+				var p = this.currentPage;
+				p = p <= 0 ? this.images.length - 1 : p - 1;
+				this.set("currentPage", p);
+			},
+			goToPage : function(n) {
+				this.set("currentPage", n);
+			},
+			_getImages : function() {
+				Polymer.dom(this).children
+					.forEach(function(el, i) {
+						var imgData, fc, img = el, caption = "";
+
+						if(el.tagName == 'FIGURE')
+						{
+							img = Polymer.dom(el).querySelector('img');
+							fc = Polymer.dom(el).querySelector('figcaption');
+							caption = fc && fc.textContent;
+						}
+						if(!img)
+							return;
+							
+						imgData = {
+							img : img,
+							src : img.src,
+							caption : caption,
+							index : i
+						}
+
+						this.push("images", imgData);
+					}.bind(this));
+			}
+		});
+		
+		var Units = {
+			getUnits : function(v) { return v.replace(/\d/g, ''); },
+			multiply : function(v, factor) { return (parseFloat(v) * factor) + Units.getUnits(v) }, 
+			divide : function(v, factor) { return (parseFloat(v) / factor) + Units.getUnits(v) } 
+		}
+	})()
+	</script>
+</dom-module>

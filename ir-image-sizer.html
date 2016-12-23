@@ -1,0 +1,107 @@
+<dom-module id="ir-image-sizer">
+	<style>
+		:host {
+		}
+		
+		:host > *
+		{
+			box-sizing : border-box;
+		}
+
+		img {
+			max-width : 100%;
+			max-height : 100%;
+		}
+		#view {
+			background-size : auto;
+			background-position : center;
+			background-repeat : no-repeat;
+			xbackground-color : yellow;
+		}
+	</style>
+	<template>
+		<div id="view" style$="[[ _constructedStyle ]]">
+		</div>
+		<img id="loader" hidden src="[[ src ]]">
+	</template>
+	<script>
+		Polymer({
+			is : "ir-image-sizer",
+			properties : {
+				src : { type : String, value : "", notify : true, observer : "_srcChanged" },
+				width : { type : String, notify : true },
+				_width : { type : String, value : "", notify : true },
+				height : { type : String, notify : true },
+				_height : { type : String, value : "", notify : true },
+				imageLoaded : { type : Boolean, value : false, notify : true },
+				_constructedStyle : { type : String, value : "", notify : true }
+			},
+			observers: ['_update(src,width,height)','_setSizing(width,height,imageLoaded)'],
+			attached : function(){
+				
+				/*var r = Polymer.dom(this).parentNode.getBoundingClientRect()
+				this.$.view.style.width = r.width + "px";
+				this.$.view.style.height = r.height + "px";*/
+			},
+			_imageLoaded : function(img) {
+				this.set('imageLoaded', true)
+			},
+			_setSizing : function() {
+				var bs = "auto", natural = {}, res = {}, box;
+
+				box = this.$.view.getBoundingClientRect();
+				
+				if(!box.width || !box.height)
+					return this.async(this._setSizing, 100) // try again later
+
+				natural = { width : parseFloat(this.$.loader.naturalWidth), height : parseFloat(this.$.loader.naturalHeight) };
+				res = { width : natural.width, height : natural.height };
+				
+				if(natural.width > box.width ||	natural.height > box.height)
+					bs = "contain";
+					
+				if(res.width > box.width) {
+					res.width = box.width;
+					natural.height = res.height = res.height * box.width / natural.width;
+				}
+				
+				if(res.height > box.height)
+				{
+					res.height = box.height;
+					res.width = res.width * box.height / natural.height;
+				}
+				
+				this.async(function() {
+					this.$.view.style.width = Math.floor(res.width) + "px";
+					this.$.view.style.height = Math.floor(res.height) + "px";
+
+					this.$.view.style.backgroundSize = bs;
+				}, 100);
+				
+				console.log("natural: ", natural.width, natural.height, " res:", res.width, res.height)
+			},
+			
+			_srcChanged : function() {
+				var img = this.$.loader;
+				
+				this.set('imageLoaded', false);
+				
+				if(img.complete && img.naturalWidth)
+					this._imageLoaded.call(this)
+				else
+					img.onload = this._imageLoaded.bind(this); 
+
+				return img;
+			},
+			
+			_update : function() {
+				this.set("_constructedStyle",
+					"width : calc(" + this.width + ");" +
+					"height : calc(" + this.height + ");" + 
+					// "background-image : url(" + this.src + ")" + 
+					"background-image : url(" + this.src + ")" + 
+					";");
+			}
+		})
+	</script>
+</dom-module>

@@ -1,0 +1,214 @@
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html"> 
+<link rel="import" href="../rv-iscroll/rv-iscroll.html" />
+<link rel="import" href="../iron-image/iron-image.html"> 
+<link rel="import" href="../paper-checkbox/paper-checkbox.html"> 
+<link rel="import" href="../paper-icon-button/paper-icon-button.html"> 
+<link rel="import" href="../iron-icons/iron-icons.html"> 
+<link rel="import" href="./ir-gallery-slider.html"> 
+
+
+
+<dom-module id="ir-gallery-panel">
+	<style is="custom-style" include="iron-flex iron-flex-alignment">
+
+	<style>
+		:host > *
+		{
+			box-sizing : border-box;
+		}
+		
+		#wrapper {
+		}
+		
+		#scroller {
+		
+		}
+		
+		#buttons {
+			@apply(--layout-horizontal);
+			@apply(--layout-center);
+			@apply(--layout-around-justified);
+			width : 100%;
+		}
+	</style>
+	<template>
+		<template hidden="[[ isReadyToDisplay ]]">
+			No images or unknown dimensions
+		</template>
+		<div id="wrapper" style$="[[ sizingStyle ]]">
+			<!--template is="dom-if" if="[[ isReadyToDisplay ]]"-->
+				
+				<!-- Main view slider -->
+				
+				<ir-gallery-slider
+					id="scroller"
+					width="[[ width ]]"
+					height="[[ slidesHeight ]]"
+					current-page="{{ currentPage }}"
+					images="[[ images ]]"
+					
+					is-ready="{{ scrollerReady }}"
+					
+					on-slider-image-click="_slideClick"
+				></ir-gallery-slider>
+				
+				
+				<div id="buttons">
+					<paper-icon-button icon="chevron-left" on-click="prev"></paper-icon-button>
+					<paper-icon-button icon="chevron-right" on-click="next"></paper-icon-button>
+				</div>
+
+				<!-- Thumbnails slider -->
+				
+				<ir-gallery-slider 
+					id="thumbnails" 
+					width="[[ width ]]" 
+					height="[[ thumbnailsHeight ]]" 
+					current-page="{{ currentPage }}" 
+					images="[[ images ]]"
+					no-captions 
+					slides-per-view="5"
+					
+					is-ready="{{ thumbnailsReady }}"
+					
+					on-slider-image-click="_thumbnailClick"
+				></ir-gallery-slider>
+
+			<!--/template-->
+		</div>
+	</template>
+	<script>
+	(function() {
+		Polymer({
+			is : "ir-gallery-panel",
+			properties : {
+				currentPage : { type : Number, value : 0, notify : true },
+				images : { type : Array, value : [], notify : true },
+				
+				demo : { type : Boolean, value : true, notify : true },
+
+				sizingStyle : { type : String, value : "", notify : true },
+				width : { type : String, /* value : "400px", */ notify : true },
+				height : { type : String, /* value : "400px",  */ notify : true },
+				
+				slidesPerView : { type : Number, value : 1, notify : true },
+
+				slidesHeight : { type : String,  /* value : "300px", */ notify : true },
+				thumbnailsHeight : { type : String, /* value : "100px", */ notify : true },
+				
+				isAttached : { type : Boolean, value : false, notify : true },
+				
+				scrollerReady : { type : Boolean, value : false, notify : true },
+				thumbnailsReady : { type : Boolean, value : false, notify : true },
+
+				isReadyToDisplay : { type : Boolean, value : false, computed : "_isReadyToDisplay(images.length,width,height,isAttached)", notify : true },
+			},
+			observers : ["_updateSize(images.length,width,height,isAttached,isReadyToDisplay,slidesPerView)"],
+
+			_isReadyToDisplay : function() {
+				return this.images.length && this.width && this.height && this.images.length && this.isAttached; // && this.get("$.scroller") && this.get("$.thumbnails");
+			},
+			_updateSize : function() {
+				this.debounce("updateSize", this._updateSizeDebounced, 250);
+			},
+			_updateSizeDebounced : function() {
+				if(!(this.isAttached && this.isReadyToDisplay)) // && this.scrollerReady && this.thumbnailsReady))
+					return;
+
+				var br = this.$$("#buttons").getBoundingClientRect();
+
+				this.set("sizingStyle", "height : calc(" + this.height + "); width : calc(" + (this.slidesPerView <= 1 ? this.width : Units.divide(this.width, this.slidesPerView)) + ");");
+
+				this.set("slidesHeight", "(" + this.height + " * " + (this.images.length > 1 ? .75 : 1) + ")"); // using calc expressions without calc itself (is added when expression is final)
+				this.set("thumbnailsHeight", "(" + this.height + " * " + (this.images.length > 1 ? .20 : 1) + ") - " + br.height + "px");
+				
+				this.refresh();
+			},
+			refresh : function() {
+				this.async(function() {
+					if(this.$.scroller.isReady && this.$.thumbnails.isReady)
+						return this.async(this.refresh, 200); // try again later
+					
+					Polymer.dom.flush();
+					this.$.scroller.refresh();
+					this.$.thumbnails.refresh();
+				});
+			},
+			attached : function() {
+				this.set('isAttached', true)
+				this._getImages();
+			},
+			_slideClick : function(e) {
+				this.goToPage(e.detail.index, true);
+				this.fire('slide-click', e.detail)
+			},
+			_thumbnailClick : function(e) {
+				this.goToPage(e.detail.index, true);
+				this.fire('thumbnail-click', e.detail)
+			},
+			next : function() {
+				var p = this.currentPage;
+				p = p >= this.images.length - 1 ? 0 : p + 1;
+				this.set("currentPage", p);
+			},
+			prev : function() {
+				var p = this.currentPage;
+				p = p <= 0 ? this.images.length - 1 : p - 1;
+				this.set("currentPage", p);
+				this.set("currentPage", p);
+			},
+			goToPage : function(n, noDebounce) {
+				this.currentPage = null;
+				if(!this.images || this.images.length <= 1)
+					return;
+					
+				if(!(this.scrollerReady && this.thumbnailsReady))
+					this.async(this.goToPage.bind(this, n, noDebounce), 300);
+				
+				if(noDebounce)
+					return this.set("currentPage", n);
+				
+				this.debounce("goToPage", function() {
+					this.set("currentPage", n);
+					this.notifyPath("currentPage");
+				}, 300);
+			},
+			_getImages : function() {
+				Polymer.dom(this).children
+					//.map(function(img) { console.log(img); return img })
+					.forEach(function(el, i) {
+						var imgData, fc, img = el, caption = "";
+
+						if(el.tagName == 'FIGURE')
+						{
+							img = Polymer.dom(el).querySelector('img');
+							fc = Polymer.dom(el).querySelector('figcaption');
+							caption = fc && fc.textContent;
+						}
+						if(!img)
+							return;
+							
+						imgData = {
+							img : img,
+							src : img.src,
+							caption : caption,
+							index : i
+						}
+
+						this.push("images", imgData);
+					}.bind(this));
+			}
+		});
+		
+		var Units = {
+			getUnits : function(v) { return v.replace(/\d/g, ''); },
+			/* multiply units value by scalar */
+			multiply : function(v, factor) { return (parseFloat(v) * factor) + Units.getUnits(v) }, 
+			/* divide units value by scalar */
+			divide : function(v, factor) { return (parseFloat(v) / factor) + Units.getUnits(v) },
+			/* subtract units value, must be same units or the first one will bluntly overtake the numeric result */
+			subtract : function(v, w) { return (parseFloat(v) - parseFloat(v)) + Units.getUnits(v) } 
+		}
+	})()
+	</script>
+</dom-module>

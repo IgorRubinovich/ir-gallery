@@ -1,0 +1,258 @@
+<dom-module id="ir-gallery-slider">
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,700' rel='stylesheet' type='text/css'>
+
+	<template>
+		<style>
+			:host > *
+			{
+				box-sizing : border-box;
+			}
+		
+			.scroller {
+				@apply(--layout-horizontal);
+			}
+			.image-container,.slide-frame, .slide {
+				@apply(--layout-vertical);
+				@apply(--layout-center);
+				@apply(--layout-around-justified);
+				position : relative;
+				
+				/*width : 600px;
+				height : 600px;*/
+			}
+
+			rv-iscroll {
+				/*width : 600px;
+				height : 600px;*/
+			}
+			
+			.slide {
+				margin : 3px;
+			}
+			
+			.slide-frame-border {
+				border : 6px solid #56646f;
+				border-radius : 9px;
+				background : white;
+			}
+			
+			.slide-frame ,.caption {
+				@apply(--layout-vertical);
+				@apply(--layout-center);
+				@apply(--layout-around-justified);
+			}
+			
+			.slide-frame .image-container
+			{
+				xheight : calc(100% - 3em);
+				xwidth : 100%;
+			}
+
+			.slide-frame .image-container img {
+				max-width : 100%;
+				max-height : 100%;
+			}
+			
+			ir-image-sizer {
+				cursor : pointer;			
+			}
+			
+			.image-container {
+				padding : 9px;
+			}
+			
+			.slide-frame[no-captions] .caption-wrapper {
+				display : none;
+			}
+			
+			.slide-frame .caption {
+				max-width : 80%;
+				height : 3em;
+				text-align : center;
+				margin : 0 auto;
+				
+				font-family : 'Open Sans', sans-serif;
+				font-size : 11px;
+				
+			}
+
+			.caption-wrapper {
+				background-color : #f2f2f2;
+				width : calc(100% - 1px);
+			}
+			
+		</style>
+		<!--
+			slider isReady [[ isReady ]]
+			images [[ images.length ]]<br>
+			<template is="dom-repeat" items="[[ images ]]">
+				[[ item.src ]]<br>
+			</template>
+			slideSizing: [[ slideSizingStyle ]] &bull; 
+			imageSizing: [[ imageSizingStyle ]] &bull; 
+			width: [[ width ]] &bull; 
+			height: [[ height ]] &bull; 
+		<!--paper-checkbox type="checkbox" checked="{{ demo }}"></paper-checkbox-->
+		
+		<rv-iscroll manual id="rvs" scroll-x is-ready="{{ isReady }}" iscroll-snap=".slide" iscroll-mousewheel="true" style$="width : calc([[ width ]]); height : calc([[ height ]])">
+			<div class="scroller">
+				<template is="dom-repeat" items="[[ images ]]">
+					<div class="slide" style$="[[ slideSizingStyle ]]">
+						<div class$="slide-frame [[ _slideFrameBorderClass ]]" no-captions$="[[noCaptions]]" data="[[ item ]]" on-click="_slideClick">
+							<div class="image-container" data="[[ item ]]" on-click="_imgClicked">
+								<ir-image-sizer
+									width="[[ _imageContainerWidth(item,width,height) ]]" 
+									height="[[ _imageContainerHeight(item,width,height) ]]" 
+									
+									src="[[ item.src ]]" 
+								></ir-image-sizer>
+							</div>
+							<div hidden="[[ !item.caption ]]" class="caption-wrapper">
+								<div class="caption">
+									[[ item.caption ]]
+								</div>
+							</div>
+						</div>
+					</div>
+				</template>
+				</div>
+			</div>
+		</rv-iscroll>
+	</template>
+<script>
+(function() {
+	Polymer({
+		is : "ir-gallery-slider",
+
+		properties : {
+			images : { type : Array, value : [], notify : true, observer : "refresh" },
+			demo : { type : Boolean, value : true, notify : true },
+			currentPage : { type : Number, value : 0, notify : true, observer  : "_pageChangedFromBinding" },
+			isAttached : { type : Boolean, value : false, notify : true },
+			
+			isReady : { type : Boolean, value : false, notify : true, observer : "_scrollerReadyChanged" },
+			
+			noCaptions : { type : Boolean, value : false, notify : true },
+			_slideFrameBorderClass : { type : String, value : "slide-frame-border", notify : true, computed : "_slideFrameBorder(noCaptions)" },
+			
+			slideSizingStyle : { type : String, value : "", notify : true },
+			imageSizingStyle : { type : String, value : "", notify : true },
+			imageContainerSizingStyle : { type : String, value : "", notify : true },
+			
+			width : { type : String, notify : true },
+			height : { type : String, notify : true },
+			slidesPerView : { type : Number, value : 1, notify : true }
+		},
+		
+		observers : [
+			'_updateSize(isAttached,noCaptions,slidesPerView,width,height,images.*)'
+		],
+		
+		refresh : function() {
+			if(!this.$.rvs)
+				this.async(this.refresh, 500); // try again later
+			
+			this.debounce("refresh", function() {
+				this.updateStyles();
+				this.$.rvs.refresh();
+			}, 1000);
+		},
+
+		_imgClicked : function(e) {
+			this.fire('slider-image-click', e.currentTarget.data);
+		},
+
+		_slideClick : function(e) {
+			this.fire('slider-slide-click', e.target.data);
+		},
+
+		_slideFrameBorder : function() {
+			return this.noCaptions ? "no-frame-border" : "slide-frame-border";
+		},
+
+		_updateSize : function() {
+			this.set("slideSizingStyle", "height : calc(" + this.height + "); width : calc(" + this._imageContainerWidth(true) + ")");
+			
+			this.refresh();
+		},
+
+		// returns a calc() expression without the calc
+		_imageContainerHeight(item) {
+			var res = 	"(" + 
+							this.height + 
+							(!this.noCaptions && item.caption ? " - 6em" : "") +
+							(this.noCaptions ? "" : " - 30px") +
+						")"; // caption and border
+		
+			return res;
+		},
+		
+		// returns a calc() expression without the calc
+		_imageContainerWidth : function(includeBorder) {
+			var res =  	"(" + 
+							(this.slidesPerView <= 1 ? this.width : this.width + " / " + this.slidesPerView) + 
+							(this.noCaptions || includeBorder === true ? "" : " - 24px") + 
+						")";
+			return res;
+		},
+		
+		_scrollerReadyChanged : function() {
+			if(this.scrollerReady)
+				this.$.rvs.iscroll.on('scrollEnd', this._pageChangedFromScroller.bind(this));
+		},
+
+		_pageChangedFromBinding : function(n, o)
+		{
+			if(!this.$.rvs.iscroll || !this.$.rvs.iscroll.pages || (!n && n != 0))
+				return;
+
+			this.$.rvs.iscroll.goToPage(this.currentPage, 0);
+		},
+		
+		_pageChangedFromScroller : function(n, o)
+		{
+			if(!this.$.rvs.iscroll)
+				return;
+			
+			this.set("currentPage", this.$.rvs.iscroll.currentPage.pageX);
+
+			//console.log(this.id, "page changed from %s to %s", n, o)
+		},
+	
+		goToPage : function(n) {
+			this.$.rvs.iscroll.goToPage(n, 0)
+		},
+	
+		attached : function() {
+			//this._getImages();
+			this.async(function() {
+
+			}, 500);
+			
+			this.set('attached', true)		
+			
+			return;
+			/*
+			demo self-sliding mode
+			this.async(function () {
+				setInterval(function() {
+					if(!this.demo)
+						return;
+					if(this.$.rvs.iscroll.currentPage.pageX < this.images.length - 1)
+						this.$.rvs.iscroll.next();
+					else
+						this.$.rvs.iscroll.goToPage(0,0);
+				}.bind(this), 500)
+			}, 500);
+			*/
+		},
+	})
+	
+	var Units = {
+		getUnits : function(v) { return v.replace(/\d/g, ''); },
+		multiply : function(v, factor) { return (parseFloat(v) * factor) + Units.getUnits(v) }, 
+		divide : function(v, factor) { return (parseFloat(v) / factor) + Units.getUnits(v) } 
+	}
+})()
+</script>
+<dom-module id="ir-gallery-slider">
