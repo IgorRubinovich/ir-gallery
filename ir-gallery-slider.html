@@ -16,16 +16,8 @@
 				@apply(--layout-center);
 				@apply(--layout-around-justified);
 				position : relative;
-				
-				/*width : 600px;
-				height : 600px;*/
 			}
 
-			rv-iscroll {
-				/*width : 600px;
-				height : 600px;*/
-			}
-			
 			.slide {
 				margin-left : 2px;
 				margin-right : 6px;
@@ -90,12 +82,10 @@
 		<rv-iscroll manual id="rvs" scroll-x is-ready="{{ isReady }}" iscroll-snap=".slide" iscroll-mousewheel="true" style$="width : calc([[ width ]]); height : calc([[ height ]])">
 			<div class="scroller" style$="height : calc([[ height ]])">
 				<template is="dom-repeat" items="[[ images ]]">
-					<div class="slide" style$="[[ slideSizingStyle ]]">
+					<div class="slide" data="[[ item ]]" style$="[[ _slideSizingStyle ]]">
 						<div class$="slide-frame [[ _slideFrameBorderClass ]]" no-captions$="[[noCaptions]]" no-border$="[[noBorder]]" data="[[ item ]]" on-click="_slideClick">
 							<div class="image-container" data="[[ item ]]" on-click="_imgClick">
 								<ir-image-sizer
-									id="__ir-gallery-slider-[[ index ]]"
-									
 									width="[[ _imageContainerWidth(item,width,height) ]]" 
 									height="[[ _imageContainerHeight(item,width,height) ]]" 
 									
@@ -120,31 +110,48 @@
 		is : "ir-gallery-slider",
 
 		properties : {
+			// the source images + captions data ({ src : "http://...", caption : "xyz" })
 			images : { type : Array, value : function() { return [] }, notify : true, observer : "refresh" },
 			demo : { type : Boolean, value : true, notify : true },
-			currentPage : { type : Number, value : 0, notify : true, observer  : "_pageChangedFromBinding" },
-			currentTarget : { type : Object, notify : true, computed  : "_currentTarget(currentPage,isReady)" },
 			
+			// current page/slide number
+			currentPage : { type : Number, value : 0, notify : true, observer  : "_pageChangedFromBinding" },
+			
+			// a complex object providing all info on the current slide
+			currentTarget : { type : Object, notify : true },
+			
+			// slider is attached
 			isAttached : { type : Boolean, value : false, notify : true },
 			
+			// scroller is ready
 			isReady : { type : Boolean, value : false, notify : true, observer : "_scrollerReadyChanged" },
 			
+			// don't display captions
 			noCaptions : { type : Boolean, value : false, notify : true },
+			
+			// don't display border around slides
 			noBorder : { type : Boolean, value : false, notify : true },
 			
-			_slideFrameBorderClass : { type : String, value : "slide-frame-border", notify : true, computed : "_slideFrameBorder(noBorder)" },
+			// keep captions space when there are no captions, ignored if noCaptions is true
+			keepCaptionsSpace : { type : Boolean, value : false, notify : true },
 			
-			slideSizingStyle : { type : String, value : "", notify : true },
-			imageSizingStyle : { type : String, value : "", notify : true },
-			imageContainerSizingStyle : { type : String, value : "", notify : true },
-			
+			// available dimensions
 			width : { type : String, notify : true },
 			height : { type : String, notify : true },
-			slidesPerView : { type : Number, value : 1, notify : true }
+			
+			// number of slides to display per view
+			slidesPerView : { type : Number, value : 1, notify : true },
+			
+			// some styling classes
+			_slideFrameBorderClass : { type : String, value : "slide-frame-border", notify : true, computed : "_slideFrameBorder(noBorder)" },
+			_slideSizingStyle : { type : String, value : "", notify : true },
+			_imageSizingStyle : { type : String, value : "", notify : true },
+			_imageContainerSizingStyle : { type : String, value : "", notify : true }
 		},
 		
 		observers : [
-			'_updateSize(isAttached,noCaptions,noBorder,slidesPerView,width,height,images.*)'
+			'_updateSize(isAttached,noCaptions,noBorder,slidesPerView,width,height,images.*)',
+			'_currentPageChanged(currentPage,isReady,isAttached)'
 		],
 		
 		refresh : function() {
@@ -170,7 +177,7 @@
 		},
 
 		_updateSize : function() {
-			this.set("slideSizingStyle", "height : calc(" + this.height + "); width : calc(" + this._imageContainerWidth(true) + ")");
+			this.set("_slideSizingStyle", "height : calc(" + this.height + "); width : calc(" + this._imageContainerWidth(true) + ")");
 			this.refresh();
 		},
 
@@ -178,7 +185,7 @@
 		_imageContainerHeight(item) {
 			var res = 	"(" + 
 							this.height + 
-							(!this.noCaptions && item.caption ? " - 2.7em" : "") +
+							(!this.noCaptions && (item.caption || this.keepCaptionsSpace) ? " - 2.7em" : "") +
 							(this.noBorder ? "" : " - 30px") +
 						")"; // caption and border
 		
@@ -195,19 +202,22 @@
 		},
 		
 		_scrollerReadyChanged : function() {
-			if(this.scrollerReady)
+			if(this.isReady)
 				this.$.rvs.iscroll.on('scrollEnd', this._pageChangedFromScroller.bind(this));
 		},
 		
 		_currentTarget : function() {
-			var sf;
-			if(!this.$.rvs)
-				return;
-			sf = Polymer.dom(this.root).querySelectorAll(".slide-frame");
-			if(!sf.length)
-				return 
+			var slide;
+
+
+			
+			slide = slide[this.currentPage];
 				
-			return sf[this.currentPage];
+			return {
+				data : slide.data,
+				slide : slide,
+				mediaItem : Polymer.dom(slide).querySelector('ir-image-sizer') // should be extended to other media, e. g. iframe embeds
+			}
 		},
 
 		_pageChangedFromBinding : function(n, o)
@@ -234,9 +244,41 @@
 		},
 	
 		attached : function() {
-			this.set('attached', true)		
+			this.set('attached', true)	
+			this.injectedElements = [];
 		},
-	})
+		
+		_currentPageChanged : function() {
+			var slide;
+			
+			slide = Polymer.dom(this.root).querySelectorAll(".slide");
+			if(!slide || !slide.length || !(this.currentPage >= 0))
+				return 
+				
+			slide = slide[this.currentPage];
+			this.set("currentTarget", {
+				data : slide.data,
+				slide : slide,
+				mediaItem : Polymer.dom(slide).querySelector('ir-image-sizer') // should be extended to other media, e. g. iframe embeds
+			});
+			
+			this.injectedElements.forEach(function(inj) {
+				Polymer.dom(Polymer.dom(this.currentTarget.slide).querySelector("." + inj.target)).appendChild(inj.el);
+			}.bind(this));
+		},
+		
+		/* el - html element, target - class of a slide component to inject the injectables into (slide-frame,image-container,caption-wrapper) */
+		injectIntoSlide : function(el, target) {
+			//this.$.scroller.injectIntoSlide(el);
+			if(!target)
+				return console.warn("Must provide a target. ", el, " will not be injected into slides");
+				
+			this.injectedElements.push({
+				el : el,
+				target : target
+			})
+		}
+	});
 	
 	var Units = {
 		getUnits : function(v) { return v.replace(/\d/g, ''); },

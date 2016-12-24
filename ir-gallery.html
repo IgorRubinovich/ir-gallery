@@ -42,6 +42,10 @@
 	<style>
 		:host {
 			box-sizing : border-box;
+			x--iron-icon-fill-color : red;
+		}
+		icon-button {
+			background-color : green;
 		}
 		paper-dialog > *
 		{
@@ -57,8 +61,9 @@
 		#zoomDialog
 		{
 			width : 97vw;
-			height : 93vh;
+			height : 97vh;
 			overflow : auto;
+			margin : 0;
 			xmargin : 10px 0 0 -5px;
 			background : lightgrey;
 		}
@@ -68,6 +73,10 @@
 			text-align : center;
 			margin : 0;
 			padding : 3px;
+			min-height : 96vh;
+			@apply(--layout-vertical);
+			@apply(--layout-center);
+			@apply(--layout-around-justified);
 		}
 
 		#zoomDialog img {
@@ -75,14 +84,14 @@
 			height : auto;
 		}
 		
-		#close-container {
-			text-align : right;
-			
-			transition : 300ms;
+		#zoom-out-container {
+			position : fixed;
+			right : 3vw;
+			top : 3vh;
+			z-index : 10000;
 		}
 	</style>
 	<template>
-		
 		<template is="dom-if" if="[[ keepInlineFormat ]]">
 			<content></content>
 		</template>
@@ -96,32 +105,38 @@
 				images="[[ images ]]"
 				width="[[ width ]]"
 				height="[[ height ]]"
-				
 			></ir-gallery-panel>
 		</template>
 		
 		<template is="dom-if" if="[[ fullScreen ]]">
-			<paper-dialog id="fullScreenDialog" on-iron-overlay-closed="_fullScreenClosed" on-iron-overlay-opened="_fullScreenOpened">
+			<paper-dialog id="fullScreenDialog" opened on-iron-overlay-closed="_fullScreenClosed" on-iron-overlay-opened="_fullScreenOpened">
 				<ir-gallery-panel
 					id="dialogGallery"
 					current-page="{{ currentPage }}"
 					current-target="{{ currentDialogTarget }}"
-					on-slide-click="zoom"
+					x-on-slide-click="zoom"
 					images="[[ images ]]"
 					width="100vw"
 					height="100vh"
+					keep-captions-space
 				>
 				</ir-gallery-panel>
-				<div id="close-container">
+				<div id="close-container" style="background-color : rgba(255,255,255,.5); border-radius : 24px; position : absolute; right : 0; bottom : 0;">
 					<paper-icon-button icon="close" on-click="closeFullScreen"></paper-icon-button>
+				</div>
+				<div id="zoom-container" style="background-color : rgba(255,255,255,.5); border-radius : 24px; position : absolute; right : 0; top : 0;" on-tap="">
+					<paper-icon-button icon="fullscreen" on-click="zoom"></paper-icon-button>
 				</div>
 			</paper-dialog>
 		</template>
-		<paper-dialog id="zoomDialog">
-			<div id="zoomWrapper">
+		<paper-dialog id="zoomDialog" opened="{{ isZooming }}">
+			<div id="zoomWrapper" class="icon-button">
 				<img src="[[ zoomedImageSrc ]]">
 			</div>
 		</paper-dialog>
+		<div hidden="[[ !isZooming ]]" id="zoom-out-container" class="icon-button">
+			<paper-icon-button icon="fullscreen-exit" dialog-dismiss></paper-icon-button>
+		</div>
 	</template>
 	<script>
 	(function() {
@@ -130,7 +145,7 @@
 			is : "ir-gallery",
 			properties : {
 				currentPage : { type : Number, value : 0, notify : true },
-				currentDialogTarget : { type : Object, notify : true, observer : "_dialogTargetChanged" },
+				currentDialogTarget : { type : Object, notify : true, observer : "_pageChanged" },
 				
 				images : { type : Array, value : function() { return [] }, notify : true },
 				
@@ -149,22 +164,67 @@
 
 				zoomedImageSrc : { type : String, value : "", notify : true },
 				fullScreen : { type : Boolean, value : false },
+				isZooming : { type : Boolean, value : false },
 				
 				keepInlineFormat : { type : Boolean, value : false }
 			},
 			observers : ["_updateSize(width,height,slidesPerView,images.length)"],
 			zoom : function(e) {
-				this.set("zoomedImageSrc", e.detail.data.src);
+				this.set("zoomedImageSrc", this.currentDialogTarget.data.src);
 				this.$.zoomDialog.open();
 			},
 			
 			_fullScreenClosed : function() {
 				document.body.style.overflow = this._bodyOverflow;
+				document.removeEventListener('keydown', this.__dialogConfig.listeners.keydown);
 			},
 			
 			_fullScreenOpened : function() {
 				this._bodyOverflow = document.body.style.overflow;
 				document.body.style.overflow = 'hidden';
+				this.__dialogConfig.listeners = {
+					keydown : document.addEventListener('keydown', this._keyPressed.bind(this))
+				};
+			},
+			
+			_keyPressed : function(e) {
+				if(e.which == 37)
+					this.prev();
+				else
+				if(e.which == 39)
+					this.next();
+					
+			},
+			
+			_pageChanged : function() {
+				var r;
+				
+				if(!this.currentDialogTarget || !this.fullScreen)
+					return;
+					
+					
+				r = this.currentDialogTarget.mediaItem.getBoundingClientRect();
+				
+				this.__dialogConfig.zoomButton.style.visibility = 
+					this.currentDialogTarget.data.img.naturalHeight > r.width ||
+					this.currentDialogTarget.data.img.naturalWidth > r.height
+						? "visible" : "hidden";
+			},
+			
+			_lazyConfigDialog : function() {
+				// one time
+				if(this.__dialogConfig)
+					return;
+
+				this.__dialogConfig = {
+					closeButton : this.$$('#close-container'),
+					zoomButton : this.$$('#zoom-container')
+				}
+				
+				var dg = this.$$("#dialogGallery");
+				
+				dg.injectIntoSlide(this.__dialogConfig.closeButton, "slide-frame");
+				dg.injectIntoSlide(this.__dialogConfig.zoomButton, "slide-frame");
 			},
 			
 			openDialog : function(e) {
@@ -174,11 +234,13 @@
 				this.set('fullScreen', true);
 		
 				this.async(function() {
-
+					this._lazyConfigDialog();
+					
 					this.$$("#fullScreenDialog").open();
 					
 					this.async(function() {
-						var dg = this.$$("#dialogGallery");
+						var dg = this.$$("#dialogGallery");						
+						
 						dg.refresh();
 						this.async(function() {
 							dg.goToPage(this.currentPage);
@@ -191,23 +253,6 @@
 			closeFullScreen : function() {
 				var fsd = this.$$('#fullScreenDialog');
 				fsd && fsd.close();
-			},
-			
-			_dialogTargetChanged : function() {
-				var bb, cc, ct;
-
-				cc = this.$$("#close-container");
-				
-				
-				/*
-				if(!this.currentDialogTarget)
-					return;
-	
-				bb = this.currentDialogTarget.getBoundingClientRect();
-
-				ccs.position = "fixed";
-				ccs.left = "calc((" + bb.width + "px + 100vw) / 2)";
-				ccs.top = "calc((" + bb.height + "px + 100vh) / 2)";*/
 			},
 			
 			_isReadyToDisplay : function() {
