@@ -34,7 +34,7 @@
 		-------------------
 			rv-iscroll // providing an instance of iScroll
 				template(is="dom-for")
-					<images>
+					ir-image-sizer // same as img/iron-image, but fits the src image into the given dimentions while keeping smaller images at their original size
 
 -->
 
@@ -42,6 +42,10 @@
 	<style>
 		:host {
 			box-sizing : border-box;
+		}
+		paper-dialog > *
+		{
+			padding : 0;
 		}
 		#fullScreenDialog {
 			width : 100vw;
@@ -52,44 +56,67 @@
 		
 		#zoomDialog
 		{
-			width : 94vw;
-			height : 94vh;
+			width : 97vw;
+			height : 93vh;
 			overflow : auto;
-			margin : 0;
+			xmargin : 10px 0 0 -5px;
 			background : lightgrey;
 		}
 		
 		#zoomWrapper
 		{
 			text-align : center;
+			margin : 0;
+			padding : 3px;
 		}
 
 		#zoomDialog img {
 			max-width : 100%;
 			height : auto;
 		}
+		
+		#close-container {
+			text-align : right;
+			
+			transition : 300ms;
+		}
 	</style>
 	<template>
-		<ir-gallery-panel 
-			id="inlineGallery" 
-			current-page="{{ currentPage }}"
-			on-slide-click="openDialog"
-			images="[[ images ]]"
-			width="[[ width ]]"
-			height="[[ height ]]"
-		></ir-gallery-panel>
-		<paper-dialog id="fullScreenDialog">
-			<template is="dom-if" if="[[ fullScreen ]]">
+		
+		<template is="dom-if" if="[[ keepInlineFormat ]]">
+			<content></content>
+		</template>
+		
+		<template is="dom-if" if="[[ !keepInlineFormat ]]">
+			<ir-gallery-panel 
+				id="inlineGallery" 
+				current-page="{{ currentPage }}"
+				on-slide-click="openDialog"
+				no-border
+				images="[[ images ]]"
+				width="[[ width ]]"
+				height="[[ height ]]"
+				
+			></ir-gallery-panel>
+		</template>
+		
+		<template is="dom-if" if="[[ fullScreen ]]">
+			<paper-dialog id="fullScreenDialog" on-iron-overlay-closed="_fullScreenClosed" on-iron-overlay-opened="_fullScreenOpened">
 				<ir-gallery-panel
 					id="dialogGallery"
 					current-page="{{ currentPage }}"
+					current-target="{{ currentDialogTarget }}"
 					on-slide-click="zoom"
 					images="[[ images ]]"
 					width="100vw"
 					height="100vh"
-				></ir-gallery-panel>
-			</template>
-		</paper-dialog>
+				>
+				</ir-gallery-panel>
+				<div id="close-container">
+					<paper-icon-button icon="close" on-click="closeFullScreen"></paper-icon-button>
+				</div>
+			</paper-dialog>
+		</template>
 		<paper-dialog id="zoomDialog">
 			<div id="zoomWrapper">
 				<img src="[[ zoomedImageSrc ]]">
@@ -98,11 +125,14 @@
 	</template>
 	<script>
 	(function() {
+		"use sctrict";
 		Polymer({
 			is : "ir-gallery",
 			properties : {
 				currentPage : { type : Number, value : 0, notify : true },
-				images : { type : Array, value : [], notify : true },
+				currentDialogTarget : { type : Object, notify : true, observer : "_dialogTargetChanged" },
+				
+				images : { type : Array, value : function() { return [] }, notify : true },
 				
 				demo : { type : Boolean, value : true, notify : true },
 
@@ -119,24 +149,65 @@
 
 				zoomedImageSrc : { type : String, value : "", notify : true },
 				fullScreen : { type : Boolean, value : false },
+				
+				keepInlineFormat : { type : Boolean, value : false }
 			},
 			observers : ["_updateSize(width,height,slidesPerView,images.length)"],
 			zoom : function(e) {
-				this.set("zoomedImageSrc", e.detail.src);
+				this.set("zoomedImageSrc", e.detail.data.src);
 				this.$.zoomDialog.open();
 			},
-			openDialog : function() {
-				this.$.fullScreenDialog.open();
+			
+			_fullScreenClosed : function() {
+				document.body.style.overflow = this._bodyOverflow;
+			},
+			
+			_fullScreenOpened : function() {
+				this._bodyOverflow = document.body.style.overflow;
+				document.body.style.overflow = 'hidden';
+			},
+			
+			openDialog : function(e) {
+				if((e.detail.data.img.naturalHeight <= e.detail.target.actualHeight) && (e.detail.data.img.naturalWidth <= e.detail.target.actualWidth))
+					return
+
 				this.set('fullScreen', true);
-				
+		
 				this.async(function() {
-					var dg = this.$$("#dialogGallery");
-					dg.refresh();
+
+					this.$$("#fullScreenDialog").open();
+					
 					this.async(function() {
-						dg.goToPage(this.currentPage);
+						var dg = this.$$("#dialogGallery");
+						dg.refresh();
+						this.async(function() {
+							dg.goToPage(this.currentPage);
+						}, 200);
 					}, 200);
-				}, 200);
-				//this.$.dialogGallery.refresh();
+					//this.$.dialogGallery.refresh();
+				})
+			},
+			
+			closeFullScreen : function() {
+				var fsd = this.$$('#fullScreenDialog');
+				fsd && fsd.close();
+			},
+			
+			_dialogTargetChanged : function() {
+				var bb, cc, ct;
+
+				cc = this.$$("#close-container");
+				
+				
+				/*
+				if(!this.currentDialogTarget)
+					return;
+	
+				bb = this.currentDialogTarget.getBoundingClientRect();
+
+				ccs.position = "fixed";
+				ccs.left = "calc((" + bb.width + "px + 100vw) / 2)";
+				ccs.top = "calc((" + bb.height + "px + 100vh) / 2)";*/
 			},
 			
 			_isReadyToDisplay : function() {
@@ -201,7 +272,13 @@
 						}
 
 						this.push("images", imgData);
+						
+						img.addEventListener('click', this._inlineContentClick.bind(this, imgData)); // only useful when not using the inline mode
 					}.bind(this));
+			},
+			_inlineContentClick : function(imgData) {
+				this.goToPage(imgData.index);
+				this.openDialog();
 			}
 		});
 		

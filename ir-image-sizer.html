@@ -1,3 +1,25 @@
+<!-- 
+	Fits images into the given dimentions without stretching smaller images.
+	
+	The background cover/contain options are good when the image is bigger than
+	its container at least in one dimension.
+	
+	When the image can fit entirely, both options will stretch it, albeit in different manners.
+	The img tag is no good either since for images wider but shorter than the container will get stretched when setting auto.
+	
+	It would be nice to have a third background-size option, e.g. 'fit' which would:
+		- Proportionally fit a background image into its element if it's bigger on either or both dimensions
+		- Leave the image as is if it can fit into the element entirely
+	
+	While css gets there at version x, this component can do the job.
+
+	Both img and background may be tweaked to produce the desired result if we know the image size.
+	This component is using the background approach, but both ways should be equivalent.
+	
+	
+	
+-->
+
 <dom-module id="ir-image-sizer">
 	<style>
 		:host {
@@ -30,11 +52,11 @@
 			properties : {
 				src : { type : String, value : "", notify : true, observer : "_srcChanged" },
 				width : { type : String, notify : true },
-				_width : { type : String, value : "", notify : true },
+				actualWidth : { type : String, value : "", notify : true },
 				height : { type : String, notify : true },
-				_height : { type : String, value : "", notify : true },
+				actualHeight : { type : String, value : "", notify : true },
 				imageLoaded : { type : Boolean, value : false, notify : true },
-				_constructedStyle : { type : String, value : "", notify : true }
+				_constructedStyle : { type : String, value : "", notify : true },
 			},
 			observers: ['_update(src,width,height)','_setSizing(width,height,imageLoaded)'],
 			attached : function(){
@@ -72,13 +94,19 @@
 				}
 				
 				this.async(function() {
-					this.$.view.style.width = Math.floor(res.width) + "px";
-					this.$.view.style.height = Math.floor(res.height) + "px";
+					var w, h;
+					
+					w = Math.floor(res.width);
+					h = Math.floor(res.height);
+					
+					this.set("actualWidth", w)
+					this.set("actualHeight", h)
+
+					this.$.view.style.width = w + "px";
+					this.$.view.style.height = h + "px";
 
 					this.$.view.style.backgroundSize = bs;
-				}, 100);
-				
-				console.log("natural: ", natural.width, natural.height, " res:", res.width, res.height)
+				}, 100);				
 			},
 			
 			_srcChanged : function() {
