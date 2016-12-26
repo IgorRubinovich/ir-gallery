@@ -335,8 +335,8 @@
 				this.refresh();
 			},
 			refresh : function() {
-				this.$.scroller.refresh();
-				this.$.thumbnails.refresh();
+				this.$.scroller && this.$.scroller.refresh();
+				this.$.thumbnails && this.$.thumbnails.refresh();
 			},
 			attached : function() {
 				this._getImages();
