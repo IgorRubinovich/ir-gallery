@@ -229,8 +229,10 @@
 			this.set("currentPage", -1);
 			
 			if(this.currentPage >= 0)
-				this.$.rvs.iscroll.goToPage.bind(this.currentPage, 0)
-				
+				this.$.rvs.iscroll.goToPage(p, 0)
+			
+			this._currentPageChanged();
+			
 			//if(this.currentPage >= 0)
 			//	this.async(this.$.rvs.iscroll.goToPage.bind(this.$.rvs.iscroll, this.currentPage, 0), 5000)
 				
