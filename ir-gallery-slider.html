@@ -73,10 +73,16 @@
 			}
 
 			.caption-wrapper {
-				background-color : #f2f2f2;
 				width : calc(100% - 1px);
+				display : none;
 			}
-						
+			.caption-wrapper .show-caption {
+				background-color : #f2f2f2;
+			}
+			.keep-caption-space { 
+				display : block;
+			}
+		},						
 		</style>
 		
 		<rv-iscroll manual id="rvs" scroll-x is-ready="{{ isReady }}" iscroll-snap=".slide" iscroll-mousewheel="true" style$="width : calc([[ width ]]); height : calc([[ height ]])">
@@ -92,7 +98,7 @@
 									src="[[ item.src ]]" 
 								></ir-image-sizer>
 							</div>
-							<div hidden="[[ !item.caption ]]" class="caption-wrapper" style$="max-width : calc([[ _imageContainerWidth(item,width,height) ]])">
+							<div class="caption-wrapper [[ _captionClass(item) ]]" style$="max-width : calc([[ _imageContainerWidth(item,width,height) ]])">
 								<div class="caption">
 									[[ item.caption ]]
 								</div>
@@ -103,6 +109,8 @@
 				</div>
 			</div>
 		</rv-iscroll>
+		<div id="_injectablesLanding">
+		</div>
 	</template>
 <script>
 (function() {
@@ -115,7 +123,7 @@
 			demo : { type : Boolean, value : true, notify : true },
 			
 			// current page/slide number
-			currentPage : { type : Number, value : 0, notify : true, observer  : "_pageChangedFromBinding" },
+			currentPage : { type : Number, notify : true, observer  : "_pageChangedFromBinding" },
 			
 			// a complex object providing all info on the current slide
 			currentTarget : { type : Object, notify : true },
@@ -181,8 +189,17 @@
 			this.refresh();
 		},
 
+		
+		_captionClass : function(item) {
+			if(item.caption && !this.noCaptions)
+				return "show-caption";
+			else
+			if(this.keepCaptionsSpace)
+				return "keep-caption-space";
+		},
+		
 		// returns a calc() expression without the calc()
-		_imageContainerHeight(item) {
+		_imageContainerHeight : function(item) {
 			var res = 	"(" + 
 							this.height + 
 							(!this.noCaptions && (item.caption || this.keepCaptionsSpace) ? " - 2.7em" : "") +
@@ -204,6 +221,8 @@
 		_scrollerReadyChanged : function() {
 			if(this.isReady)
 				this.$.rvs.iscroll.on('scrollEnd', this._pageChangedFromScroller.bind(this));
+				
+			this.set("currentPage", -1);
 		},
 		
 		_currentTarget : function() {
@@ -225,10 +244,10 @@
 			if(this.disabled) 
 				return;
 			
-			if(!this.$.rvs.iscroll || !this.$.rvs.iscroll.pages || (!n && n != 0))
+			if(!this.$.rvs.iscroll || !this.$.rvs.iscroll.pages.length || (!n && n != 0))
 				return;
 
-			this.$.rvs.iscroll.goToPage(this.currentPage, 0);
+			this.goToPage(this.currentPage, 0);
 		},
 		
 		_pageChangedFromScroller : function(n, o)
@@ -240,12 +259,19 @@
 		},
 	
 		goToPage : function(n) {
+			if(n < 0)
+				return;
+			//this.debounce("goToPage", function() {
 			this.$.rvs.iscroll.goToPage(n, 0)
+			//}, 30);
+		},
+	
+		ready : function() {
+			this._injectedElements = [];
 		},
 	
 		attached : function() {
 			this.set('attached', true)	
-			this.injectedElements = [];
 		},
 		
 		_currentPageChanged : function() {
@@ -262,21 +288,36 @@
 				mediaItem : Polymer.dom(slide).querySelector('ir-image-sizer') // should be extended to other media, e. g. iframe embeds
 			});
 			
-			this.injectedElements.forEach(function(inj) {
+			this._injectedElements.forEach(function(inj) {
 				Polymer.dom(Polymer.dom(this.currentTarget.slide).querySelector("." + inj.target)).appendChild(inj.el);
 			}.bind(this));
 		},
 		
-		/* el - html element, target - class of a slide component to inject the injectables into (slide-frame,image-container,caption-wrapper) */
+		/* 
+			el - html element, target - class of a slide component to inject the injectables into (slide-frame,image-container,caption-wrapper) 
+			returns the local imported node.	
+		*/
 		injectIntoSlide : function(el, target) {
+			var imported;
 			//this.$.scroller.injectIntoSlide(el);
 			if(!target)
 				return console.warn("Must provide a target. ", el, " will not be injected into slides");
-				
-			this.injectedElements.push({
-				el : el,
+			
+			imported = Polymer.dom(this.root).importNode(el);
+			
+			Polymer.dom(this.$._injectablesLanding).appendChild(el);
+			Polymer.dom(this.$._injectablesLanding).innerHTML = Polymer.dom(this.$._injectablesLanding).innerHTML.trim();
+			
+			Polymer.dom.flush();
+			
+			imported = Polymer.dom(this.$._injectablesLanding).firstChild;
+			Polymer.dom(this.$._injectablesLanding).innerHTML = '';
+			this._injectedElements.push({
+				el : imported,
 				target : target
-			})
+			});
+			
+			return imported;
 		}
 	});
 	

@@ -1,10 +1,3 @@
-<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html"> 
-<link rel="import" href="../rv-iscroll/rv-iscroll.html" />
-<link rel="import" href="../iron-image/iron-image.html"> 
-<link rel="import" href="../paper-checkbox/paper-checkbox.html"> 
-<link rel="import" href="../paper-icon-button/paper-icon-button.html"> 
-<link rel="import" href="../iron-icons/iron-icons.html"> 
-<link rel="import" href="./ir-gallery-slider.html"> 
 
 
 
@@ -18,6 +11,9 @@
 		}
 		
 		#wrapper {
+			@apply(--layout-vertical);
+			@apply(--layout-center);
+			@apply(--layout-around-justified);
 		}
 		
 		#scroller {
@@ -44,7 +40,9 @@
 				width="[[ width ]]"
 				height="[[ slidesHeight ]]"
 				current-page="{{ currentPage }}"
-				current-target="{{ currentTarget }}"
+				current-target="{{ selectedSlide }}"
+				
+				keep-captions-space
 				
 				images="[[ images ]]"
 				
@@ -57,7 +55,7 @@
 			</ir-gallery-slider>
 			
 			
-			<div id="buttons" hidden$="[[ thumbnailsHidden ]]">
+			<div id="buttons" hidden$="[[ _thumbnailsHidden ]]">
 				<paper-icon-button icon="chevron-left" on-click="prev"></paper-icon-button>
 				<paper-icon-button icon="chevron-right" on-click="next"></paper-icon-button>
 			</div>
@@ -68,14 +66,14 @@
 				width="[[ width ]]" 
 				height="[[ thumbnailsHeight ]]" 
 				current-page="{{ currentPage }}" 
-				current-target="{{ currentTarget }}" 
+				current-target="{{ selectedThumbnail }}" 
 
 				images="[[ images ]]"
 				no-captions
 				no-border
 				
-				hidden$="[[ thumbnailsHidden ]]"
-				disabled="[[ thumbnailsHidden ]]"
+				hidden$="[[ _thumbnailsHidden ]]"
+				disabled="[[ _thumbnailsHidden ]]"
 				
 				slides-per-view="5"
 				
@@ -93,7 +91,11 @@
 			is : "ir-gallery-panel",
 			properties : {
 				currentPage : { type : Number, value : 0, notify : true },
-				currentTarget : { type : Object, notify : true },
+				
+				//currentTarget : { type : Object, notify : true },
+				
+				selectedSlide : { type : Object, notify : true },
+				selectedThumbnail : { type : Object, notify : true },
 				
 				images : { type : Array, value : function() { return [] }, notify : true },
 				
@@ -105,6 +107,9 @@
 				width : { type : String, /* value : "400px", */ notify : true },
 				height : { type : String, /* value : "400px",  */ notify : true },
 				
+				// keep captions space when there are no captions, ignored if noCaptions is true
+				keepCaptionsSpace : { type : Boolean, value : true, notify : true },
+			
 				slidesPerView : { type : Number, value : 1, notify : true },
 
 				slidesHeight : { type : String,  /* value : "300px", */ notify : true },
@@ -117,12 +122,14 @@
 
 				isReadyToDisplay : { type : Boolean, value : false, computed : "_isReadyToDisplay(images.length,width,height,isAttached)", notify : true },
 			
-				thumbnailsHidden : { type : Boolean, value : false, computed : "_thumbnailsHidden(images.length)", notify : true }
+			
+				_thumbnailsHidden : { type : Boolean, value : false, computed : "__thumbnailsHidden(images.length,thumbnailsHidden)" },
+				thumbnailsHidden : { type : Boolean, value : false, notify : true }
 			},
-			observers : ["_updateSize(images.length,width,height,isAttached,isReadyToDisplay,slidesPerView)"],
+			observers : ["_updateSize(images.length,width,height,isAttached,isReadyToDisplay,slidesPerView,_thumbnailsHidden)"],
 
-			_thumbnailsHidden : function() {
-				return this.get("images.length") <= 1;
+			__thumbnailsHidden : function() {
+				return this.images.length <= 1 || this.thumbnailsHidden;
 			},
 
 			_isReadyToDisplay : function() {
@@ -140,10 +147,10 @@
 				
 				this.set("sizingStyle", "height : calc(" + this.height + "); " + 
 										"width : calc(" + 
-											(this.slidesPerView <= 1 ? this.width : Units.divide(this.width, this.slidesPerView)) + 
+											(this._thumbnailsHidden ? this.width : Units.divide(this.width, this.slidesPerView)) + 
 										" - 0px);");
 
-				this.set("slidesHeight", "(" + this.height + " * " + (this.images.length > 1 ? .75 : 1) + ")"); // using calc expressions without calc itself (is added when expression is final)
+				this.set("slidesHeight", "(" + this.height + " * " + (this._thumbnailsHidden ? 1 : .75) + ")"); // using calc expressions without calc itself (is added when expression is final)
 				this.set("thumbnailsHeight", this.images.length > 1 ? "(" + this.height + " * .25" + ") - " + br.height + "px" : 0);
 				
 				this.refresh();
@@ -156,7 +163,7 @@
 					Polymer.dom.flush();
 					this.$.scroller.refresh();
 					
-					if(!this.thumbnailsHidden)
+					if(!this._thumbnailsHidden)
 						this.$.thumbnails.refresh();
 				});
 			},
@@ -183,7 +190,7 @@
 				this.set("currentPage", p);
 			},
 			goToPage : function(n, noDebounce) {
-				this.currentPage = -1;
+				//this.currentPage = -1;
 				if(!this.images) // || this.images.length <= 1)
 					return;
 					
@@ -223,7 +230,7 @@
 					}.bind(this));
 			},
 			injectIntoSlide : function(el, target) {
-				this.$.scroller.injectIntoSlide(el, target);
+				return this.$.scroller.injectIntoSlide(el, target);
 			}
 		});
 		

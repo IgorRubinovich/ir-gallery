@@ -1,13 +1,16 @@
-<link rel="import" href="../iron-flex-layout/iron-flex-layout.html"> 
-<link rel="import" href="../rv-iscroll/rv-iscroll.html" />
-<link rel="import" href="../iron-image/iron-image.html"> 
-<link rel="import" href="../paper-checkbox/paper-checkbox.html"> 
-<link rel="import" href="../paper-icon-button/paper-icon-button.html"> 
-<link rel="import" href="../paper-dialog/paper-dialog.html"> 
-<link rel="import" href="../iron-icons/iron-icons.html"> 
-<link rel="import" href="./ir-gallery-slider.html"> 
-<link rel="import" href="./ir-gallery-panel.html"> 
-<link rel="import" href="./ir-image-sizer.html"> 
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../iron-image/iron-image.html">
+<link rel="import" href="../neon-animation/animations/fade-out-animation.html">
+<link rel="import" href="../neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../rv-iscroll/rv-iscroll.html">
+<link rel="import" href="./ir-gallery-panel.html">
+<link rel="import" href="./ir-gallery-slider.html">
+<link rel="import" href="./ir-image-sizer.html">
+
 
 <!--
 	Structure (in jade-ish):
@@ -42,7 +45,7 @@
 	<style>
 		:host {
 			box-sizing : border-box;
-			x--iron-icon-fill-color : red;
+			x-iron-icon-fill-color : red;
 		}
 		icon-button {
 			background-color : green;
@@ -105,40 +108,46 @@
 				images="[[ images ]]"
 				width="[[ width ]]"
 				height="[[ height ]]"
+				thumbnails-hidden="[[ inlineThumbnailsHidden ]]"
 			></ir-gallery-panel>
 		</template>
 		
-		<template is="dom-if" if="[[ fullScreen ]]">
-			<paper-dialog id="fullScreenDialog" opened on-iron-overlay-closed="_fullScreenClosed" on-iron-overlay-opened="_fullScreenOpened">
+		<!--template is="dom-if" if="[[ fullScreen ]]"-->
+			<paper-dialog 
+              exit-animation="fade-out-animation" id="fullScreenDialog" on-iron-overlay-closed="_fullScreenClosed" on-iron-overlay-opened="_fullScreenOpened">
 				<ir-gallery-panel
 					id="dialogGallery"
 					current-page="{{ currentPage }}"
-					current-target="{{ currentDialogTarget }}"
+					selected-slide="{{ currentDialogTarget }}"
 					x-on-slide-click="zoom"
 					images="[[ images ]]"
 					width="100vw"
 					height="100vh"
 					keep-captions-space
+					thumbnails-hidden="[[ fullScreenThumbnailsHidden ]]"
 				>
 				</ir-gallery-panel>
 				<div id="close-container" style="background-color : rgba(255,255,255,.5); border-radius : 24px; position : absolute; right : 0; bottom : 0;">
-					<paper-icon-button icon="close" on-click="closeFullScreen"></paper-icon-button>
+					<paper-icon-button icon="close" on-tap="closeFullScreen"></paper-icon-button>
 				</div>
-				<div id="zoom-container" style="background-color : rgba(255,255,255,.5); border-radius : 24px; position : absolute; right : 0; top : 0;" on-tap="">
-					<paper-icon-button icon="fullscreen" on-click="zoom"></paper-icon-button>
+				<div id="zoom-container" style="background-color : rgba(255,255,255,.5); border-radius : 24px; position : absolute; right : 0; top : 0;">
+					<paper-icon-button icon="fullscreen" on-tap="zoom"></paper-icon-button>
 				</div>
 			</paper-dialog>
-		</template>
-		<paper-dialog id="zoomDialog" opened="{{ isZooming }}">
+		<!--/template-->
+		<paper-dialog id="zoomDialog" on-iron-overlay-closed="_unzoomed" opened="{{ isZooming }}">
 			<div id="zoomWrapper" class="icon-button">
 				<img src="[[ zoomedImageSrc ]]">
 			</div>
 		</paper-dialog>
-		<div hidden="[[ !isZooming ]]" id="zoom-out-container" class="icon-button">
-			<paper-icon-button icon="fullscreen-exit" dialog-dismiss></paper-icon-button>
+		<div hidden$="[[ !isZooming ]]" id="zoom-out-container" class="icon-button">
+			<paper-icon-button icon="fullscreen-exit" on-tap="unzoom"></paper-icon-button>
 		</div>
 	</template>
+
 	<script>
+	
+	
 	(function() {
 		"use sctrict";
 		Polymer({
@@ -148,6 +157,7 @@
 				currentDialogTarget : { type : Object, notify : true, observer : "_pageChanged" },
 				
 				images : { type : Array, value : function() { return [] }, notify : true },
+				imagesDomPath : { type : String, notify : true },
 				
 				demo : { type : Boolean, value : true, notify : true },
 
@@ -155,33 +165,120 @@
 				width : { type : String, value : "400px", notify : true },
 				height : { type : String, value : "400px", notify : true },
 
+				fullScreenThumbnailsHidden : { type : Boolean, value : false },
+				inlineThumbnailsHidden : { type : Boolean, value : false },
+				
+				/* just a convenience when using inline images that are wrapped in <a></a> as a fallback */
+				clickPreventDefault : { type : Boolean, value : false },
+				
+				inlineThumbnailsHidden : { type : Boolean, value : false },
+				
 				slidesPerView : { type : Number, value : 1, notify : true },
 
 				slidesHeight : { type : String, value : "300px", notify : true },
 				thumbnailsHeight : { type : String, value : "100px", notify : true },
 
-				isReadyToDisplay : { type : Boolean, value : false, computed : "_isReadyToDisplay(images.length,width,height)" },
+				isReadyToDisplay : { type : Boolean, value : false, computed : "_isReadyToDisplay(images.*,width,height)" },
 
 				zoomedImageSrc : { type : String, value : "", notify : true },
 				fullScreen : { type : Boolean, value : false },
 				isZooming : { type : Boolean, value : false },
-				
+			
 				keepInlineFormat : { type : Boolean, value : false }
 			},
-			observers : ["_updateSize(width,height,slidesPerView,images.length)"],
+			observers : ["_updateSize(width,height,slidesPerView,images.*)"],
+			
+			// zoom
 			zoom : function(e) {
 				this.set("zoomedImageSrc", this.currentDialogTarget.data.src);
-				this.$.zoomDialog.open();
+				this.$.zoomDialog.open()
+				this._unbindArrowKeyListeners();
+			},
+			
+			unzoom : function(e) {
+				this.set("zoomedImageSrc", this.currentDialogTarget.data.src);
+				this.$.zoomDialog.close()
+				this._bindArrowKeyListeners();
+			},
+			
+			_unzoomed : function(e) {
+				this._bindArrowKeyListeners();
+			},
+			
+			// full screen
+			openDialog : function(e) {
+				if((e.detail.data.img.naturalHeight <= e.detail.target.actualHeight) && (e.detail.data.img.naturalWidth <= e.detail.target.actualWidth))
+					return
+
+				this._lazyConfigDialog();
+				
+				this.set('fullScreen', true);
+				
+
+				this.async(function() {					
+					this.$$("#fullScreenDialog").open();
+					
+					this.async(function() {
+						var dg = this.$$("#dialogGallery");						
+						
+						dg.refresh();
+						this.async(function() {
+							dg.goToPage(this.currentPage);
+						}, 200);
+					}, 200);
+					//this.$.dialogGallery.refresh();
+				})
+			},
+			closeFullScreen : function() {
+				var fsd = this.$$('#fullScreenDialog');
+				fsd && fsd.close();
+				this._unbindArrowKeyListeners();
 			},
 			
 			_fullScreenClosed : function() {
 				document.body.style.overflow = this._bodyOverflow;
-				document.removeEventListener('keydown', this.__dialogConfig.listeners.keydown);
+				this._unbindArrowKeyListeners();
 			},
 			
 			_fullScreenOpened : function() {
 				this._bodyOverflow = document.body.style.overflow;
 				document.body.style.overflow = 'hidden';
+				this._bindArrowKeyListeners();
+				this._pageChanged()
+			},
+			
+			
+			_lazyConfigDialog : function() {
+				var dg = this.$$("#dialogGallery"), cc, zc;
+				
+				// one time
+				if(this.__dialogConfig)
+					return;
+
+				cc = this.$$('#close-container');
+				zc = this.$$('#zoom-container');
+
+				this.__dialogConfig = {
+					closeButton : dg.injectIntoSlide(cc, "slide-frame"),
+					zoomButton : dg.injectIntoSlide(zc, "slide-frame")
+				};
+				
+				Polymer.dom.flush();
+				
+				this.__dialogConfig.closeButton.addEventListener("click", this.closeFullScreen.bind(this));
+				this.__dialogConfig.zoomButton.addEventListener("click", this.zoom.bind(this));
+
+				cc.style.visibility = 'hidden';
+				zc.style.visibility = 'hidden';
+
+			},
+	
+			// keyboard control
+			_unbindArrowKeyListeners : function() {
+				document.removeEventListener('keydown', this.__dialogConfig.listeners.keydown);
+			},
+			
+			_bindArrowKeyListeners : function() {
 				this.__dialogConfig.listeners = {
 					keydown : document.addEventListener('keydown', this._keyPressed.bind(this))
 				};
@@ -202,59 +299,30 @@
 				if(!this.currentDialogTarget || !this.fullScreen)
 					return;
 					
-					
 				r = this.currentDialogTarget.mediaItem.getBoundingClientRect();
-				
+
 				this.__dialogConfig.zoomButton.style.visibility = 
-					this.currentDialogTarget.data.img.naturalHeight > r.width ||
-					this.currentDialogTarget.data.img.naturalWidth > r.height
+					this.currentDialogTarget.data.img.naturalWidth > r.width ||
+					this.currentDialogTarget.data.img.naturalHeight > r.height
 						? "visible" : "hidden";
-			},
-			
-			_lazyConfigDialog : function() {
-				// one time
-				if(this.__dialogConfig)
-					return;
-
-				this.__dialogConfig = {
-					closeButton : this.$$('#close-container'),
-					zoomButton : this.$$('#zoom-container')
-				}
-				
-				var dg = this.$$("#dialogGallery");
-				
-				dg.injectIntoSlide(this.__dialogConfig.closeButton, "slide-frame");
-				dg.injectIntoSlide(this.__dialogConfig.zoomButton, "slide-frame");
-			},
-			
-			openDialog : function(e) {
-				if((e.detail.data.img.naturalHeight <= e.detail.target.actualHeight) && (e.detail.data.img.naturalWidth <= e.detail.target.actualWidth))
-					return
-
-				this.set('fullScreen', true);
-		
-				this.async(function() {
-					this._lazyConfigDialog();
-					
-					this.$$("#fullScreenDialog").open();
-					
-					this.async(function() {
-						var dg = this.$$("#dialogGallery");						
 						
-						dg.refresh();
-						this.async(function() {
-							dg.goToPage(this.currentPage);
-						}, 200);
-					}, 200);
-					//this.$.dialogGallery.refresh();
-				})
+				this.__dialogConfig.closeButton.style.visibility = 'visible';
 			},
-			
-			closeFullScreen : function() {
-				var fsd = this.$$('#fullScreenDialog');
-				fsd && fsd.close();
+			next : function() {
+				var p = this.currentPage;
+				p = p >= this.images.length - 1 ? 0 : p + 1;
+				this.set("currentPage", p);
 			},
-			
+			prev : function() {
+				var p = this.currentPage;
+				p = p <= 0 ? this.images.length - 1 : p - 1;
+				this.set("currentPage", p);
+			},
+			goToPage : function(n) {
+				this.set("currentPage", n);
+			},
+		
+			// internal services
 			_isReadyToDisplay : function() {
 				return this.images.length && this.width && this.height
 			},
@@ -276,27 +344,29 @@
 			attached : function() {
 				this._getImages();
 			},
-			_openFullScreen : function(e) {
-				console.log("full screen!", e.detail)
+			
+			_getImagesAtDomPath : function() {
+				var root, arre = /(\S+)\[(\d+)]\]/, split;
+				split = this.imagesDomPath.split(".");
+				root = 
+					split
+						.reduce(function(res, curr) {
+							var arr = curr.match(arre), res;
+							if(arr)
+								return Polymer.dom(res)[arr[0]][arr[1]];
+							else
+								return Polymer.dom(res)[curr]; 
+						}, this)
+						
+				return Polymer.dom(root)
+						.querySelectorAll('img')
+						.map(function(img) { return img.parentNode.tagName == 'FIGURE' ? img.parentNode : img });
 			},
-			_goToPage : function(e) {
-				this.goToPage(e.detail.index);
-			},
-			next : function() {
-				var p = this.currentPage;
-				p = p >= this.images.length - 1 ? 0 : p + 1;
-				this.set("currentPage", p);
-			},
-			prev : function() {
-				var p = this.currentPage;
-				p = p <= 0 ? this.images.length - 1 : p - 1;
-				this.set("currentPage", p);
-			},
-			goToPage : function(n) {
-				this.set("currentPage", n);
-			},
+			
 			_getImages : function() {
-				Polymer.dom(this).children
+				var sources, idp;
+
+				(this.imagesDomPath ? this._getImagesAtDomPath() : Polymer.dom(this).children)
 					.forEach(function(el, i) {
 						var imgData, fc, img = el, caption = "";
 
@@ -318,12 +388,16 @@
 
 						this.push("images", imgData);
 						
-						img.addEventListener('click', this._inlineContentClick.bind(this, imgData)); // only useful when not using the inline mode
+						img.addEventListener('click', this._inlineContentClick.bind(this, imgData)); // only useful when not using the inline mode		
 					}.bind(this));
 			},
-			_inlineContentClick : function(imgData) {
+			
+			/* Process clicks on images located outside this element's shadow dom (either when using keep-inline-format or images-dom-path) */
+			_inlineContentClick : function(imgData, e) {
+				this.openDialog({ detail : { data : imgData, target : imgData.img }});
+				if(this.clickPreventDefault)
+					e.preventDefault();
 				this.goToPage(imgData.index);
-				this.openDialog();
 			}
 		});
 		
