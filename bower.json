@@ -26,6 +26,6 @@
     "neon-animation": "PolymerElements/neon-animation#^1.2.4",
     "paper-dialog": "PolymerElements/paper-dialog#^1.1.0",
     "paper-icon-button": "PolymerElements/paper-icon-button#^1.1.4",
-    "rv-iscroll": "https://github.com/IgorRubinovich/rv-iscroll.git"
+    "rv-iscroll": "https://github.com/IgorRubinovich/rv-iscroll.git#master"
   }
 }
