@@ -223,7 +223,7 @@
 				this.$.rvs.iscroll.on('scrollEnd', this._pageChangedFromScroller.bind(this));
 				
 			if(this.currentPage >= 0)
-				this.$.rvs.iscroll.goToPage(this.currentPage)
+				this.$.rvs.iscroll.goToPage(this.currentPage, 0)
 		},
 		
 		_currentTarget : function() {
