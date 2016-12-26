@@ -219,11 +219,21 @@
 		},
 		
 		_scrollerReadyChanged : function() {
-			if(this.isReady)
-				this.$.rvs.iscroll.on('scrollEnd', this._pageChangedFromScroller.bind(this));
-				
+			if(!this.isReady)
+				return;
+			
+			this.$.rvs.iscroll.on('scrollEnd', this._pageChangedFromScroller.bind(this));
+			
+			var p = this.currentPage;
+			
+			this.set("currentPage", -1);
+			
 			if(this.currentPage >= 0)
-				this.$.rvs.iscroll.goToPage(this.currentPage, 0)
+				this.$.rvs.iscroll.goToPage.bind(this.currentPage, 0)
+				
+			//if(this.currentPage >= 0)
+			//	this.async(this.$.rvs.iscroll.goToPage.bind(this.$.rvs.iscroll, this.currentPage, 0), 5000)
+				
 		},
 		
 		_currentTarget : function() {
