@@ -335,9 +335,6 @@
 				this.refresh();
 			},
 			refresh : function() {
-				if(!this.$.rvs)
-					return; //this.async(this.refresh, 500); // try again later
-			
 				this.$.scroller.refresh();
 				this.$.thumbnails.refresh();
 			},
