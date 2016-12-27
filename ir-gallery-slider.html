@@ -19,7 +19,8 @@
 			}
 
 			.slide {
-				margin-right : 2px;
+				margin-left : 0px;
+				margin-right : 6px;
 			}
 			
 			.slide-frame-border:not([no-border]) {
@@ -86,7 +87,7 @@
 		},						
 		</style>
 		
-		<rv-iscroll manual id="rvs" scroll-x is-ready="{{ isReady }}" iscroll-snap=".slide" iscroll-mousewheel="true" style$="width : calc([[ width ]]); height : calc([[ height ]])">
+		<rv-iscroll manual id="rvs" scroll-x is-ready="{{ isReady }}" iscroll-snap=".slide" iscroll-mousewheel="true" style$="margin-left : -2px; width : calc([[ width ]]); height : calc([[ height ]])">
 			<div class="scroller" style$="height : calc([[ height ]])">
 				<template is="dom-repeat" items="[[ images ]]">
 					<div class="slide" data="[[ item ]]" style$="[[ _slideSizingStyle ]]">
@@ -214,7 +215,9 @@
 		_imageContainerWidth : function(includeBorder) {
 			var res =  	"(" + 
 							(this.slidesPerView <= 1 ? this.width : this.width + " / " + this.slidesPerView) + 
-							" - " + this._borderWidth() + " - " + this._imageContainerPaddingWidth() +
+							// " - " + this._borderWidth() + " - " + this._imageContainerPaddingWidth() +
+							
+							(includeBorder === true ? "" : " - " + this._borderWidth() + " - " + this._imageContainerPaddingWidth()) +
 						")";
 			return res;
 		},
@@ -227,7 +230,7 @@
 		},
 		
 		_imageContainerPaddingWidth : function() {
-			return "(2 * " + (this.getComputedStyleValue("--image-container-padding-width") || "18px") + ")";
+			return "(2 * " + (this.getComputedStyleValue("--image-container-padding-width") || "9px") + ")";
 		},
 		
 		_scrollerReadyChanged : function() {
