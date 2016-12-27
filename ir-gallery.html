@@ -104,8 +104,10 @@
 			<ir-gallery-panel 
 				id="inlineGallery" 
 				current-page="{{ currentPage }}"
+				selected-slide="{{ currentInlineTarget }}"
 				on-slide-click="openDialog"
 				no-border
+
 				images="[[ images ]]"
 				width="[[ width ]]"
 				height="[[ height ]]"
@@ -156,7 +158,8 @@
 			is : "ir-gallery",
 			properties : {
 				currentPage : { type : Number, value : 0, notify : true },
-				currentDialogTarget : { type : Object, notify : true, observer : "_pageChanged" },
+				currentDialogTarget : { type : Object, notify : true, observer : "_dialogPageChanged" },
+				currentInlineTarget : { type : Object, notify : true, observer : "_inlinePageChanged" },
 				
 				images : { type : Array, value : function() { return [] }, notify : true },
 				imagesDomPath : { type : String, notify : true },
@@ -244,7 +247,7 @@
 				this._bindArrowKeyListeners();
 				if(!this.currentPage)
 					this.goToPage(0);
-				this._pageChanged()
+				this._dialogPageChanged()
 			},
 			
 			
@@ -276,9 +279,13 @@
 			// keyboard control
 			_unbindArrowKeyListeners : function() {
 				document.removeEventListener('keydown', this.__dialogConfig.listeners.keydown);
+				this.__dialogConfig.listeners.keydown = null;
 			},
 			
 			_bindArrowKeyListeners : function() {
+				if(this.get("__dialogConfig.listeners"))
+					this._unbindArrowKeyListeners();
+					
 				this.__dialogConfig.listeners = {
 					keydown : this._keydown.bind(this)
 				};
@@ -295,17 +302,26 @@
 					
 			},
 			
-			_pageChanged : function() {
+			_isDiminished : function(img, container) {
+				var r = container.getBoundingClientRect();
+				return img.naturalWidth > r.width || img.naturalHeight > r.height;				
+			},
+			
+			_inlinePageChanged : function() {
+				this.currentInlineTarget.mediaItem.style.cursor = 
+					this._isDiminished(this.currentInlineTarget.data.img, this.currentInlineTarget.mediaItem) ?
+						"pointer" : "default";
+			},
+			
+			_dialogPageChanged : function() {
 				var r;
 				
 				if(!this.currentDialogTarget || !this.fullScreen)
 					return;
 					
-				r = this.currentDialogTarget.mediaItem.getBoundingClientRect();
 
 				this.__dialogConfig.zoomButton.style.visibility = 
-					this.currentDialogTarget.data.img.naturalWidth > r.width ||
-					this.currentDialogTarget.data.img.naturalHeight > r.height
+					this._isDiminished(this.currentDialogTarget.data.img, this.currentDialogTarget.mediaItem)
 						? "visible" : "hidden";
 						
 				this.__dialogConfig.closeButton.style.visibility = 'visible';

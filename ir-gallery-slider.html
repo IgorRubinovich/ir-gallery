@@ -48,10 +48,6 @@
 				max-height : 100%;
 			}
 			
-			ir-image-sizer {
-				cursor : pointer;			
-			}
-			
 			.image-container {
 				padding : var(--image-container-padding-width, 9px);
 			}
@@ -96,7 +92,7 @@
 		},						
 		</style>
 
-		<div id="waitingContainer" style$="margin-left : -2px; width : calc([[ width ]]); height : calc([[ height ]])">
+		<div id="waitingContainer" hidden="[[ !isWaiting ]]" style$="margin-left : -2px; width : calc([[ width ]]); height : calc([[ height ]])">
 			<paper-spinner active="[[ isWaiting ]]"></paper-spinner>
 		</div>
 		<rv-iscroll manual invisible$="[[isWaiting]]" id="rvs" scroll-x is-ready="{{ isReady }}" iscroll-snap=".slide" iscroll-mousewheel="true" 
@@ -105,7 +101,7 @@
 				<template is="dom-repeat" items="[[ images ]]">
 					<div class="slide" data="[[ item ]]" style$="[[ _slideSizingStyle ]]">
 						<div class$="slide-frame [[ _slideFrameBorderClass ]]" no-captions$="[[noCaptions]]" no-border$="[[noBorder]]" data="[[ item ]]" on-click="_slideClick">
-							<div class="image-container" data="[[ item ]]" on-click="_imgClick">
+							<div class="image-container" data="[[ item ]]" style="[[ imageContainerStyle ]]" on-click="_imgClick">
 								<ir-image-sizer
 									width="[[ _imageContainerWidth(item,width,height) ]]" 
 									height="[[ _imageContainerHeight(item,width,height,keepCaptionsSpace) ]]" 
@@ -166,6 +162,8 @@
 			
 			// number of slides to display per view
 			slidesPerView : { type : Number, value : 1, notify : true },
+			
+			imageContainerStyle : { type : String, value : "", notify : true },
 			
 			// some styling classes
 			_slideFrameBorderClass : { type : String, value : "slide-frame-border", notify : true, computed : "_slideFrameBorder(noBorder)" },
