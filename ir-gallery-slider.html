@@ -52,7 +52,7 @@
 			}
 			
 			.image-container {
-				padding : 9px;
+				padding : var(--image-container-padding-width, 9px);
 			}
 			
 			.slide-frame[no-captions] .caption-wrapper {
@@ -204,7 +204,7 @@
 			var res = 	"(" + 
 							this.height + 
 							(!this.noCaptions && (item.caption || this.keepCaptionsSpace) ? " - 2.7em" : "") +
-							" - " + this._borderWidth() +
+							" - " + this._borderWidth() + " - " + this._imageContainerPaddingWidth() +
 						")"; // caption and border
 		
 			return res;
@@ -214,7 +214,7 @@
 		_imageContainerWidth : function(includeBorder) {
 			var res =  	"(" + 
 							(this.slidesPerView <= 1 ? this.width : this.width + " / " + this.slidesPerView) + 
-							" - " + this._borderWidth() +
+							" - " + this._borderWidth() + " - " + this._imageContainerPaddingWidth() +
 						")";
 			return res;
 		},
@@ -224,6 +224,10 @@
 				return "0px";
 				
 			return "(2 * " + (this.getComputedStyleValue("--slide-frame-border-width") || "6px") + ")";
+		},
+		
+		_imageContainerPaddingWidth : function() {
+			return "(2 * " + (this.getComputedStyleValue("--image-container-padding-width") || "28px") + ")";
 		},
 		
 		_scrollerReadyChanged : function() {

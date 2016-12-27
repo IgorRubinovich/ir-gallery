@@ -114,6 +114,7 @@
 		
 		<!--template is="dom-if" if="[[ fullScreen ]]"-->
 			<paper-dialog 
+				x-entry-animation="scale-up-animation" 
               exit-animation="fade-out-animation" id="fullScreenDialog" on-iron-overlay-closed="_fullScreenClosed" on-iron-overlay-opened="_fullScreenOpened">
 				<ir-gallery-panel
 					id="dialogGallery"
