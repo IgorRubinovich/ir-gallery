@@ -84,10 +84,23 @@
 			.caption-wrapper.keep-caption-space { 
 				display : block;
 			}
+			[invisible] {
+				visibility : hidden
+			}
+			#waitingContainer {
+				@apply(--layout-vertical);
+				@apply(--layout-center);
+				@apply(--layout-around-justified;
+				position : absolute;
+			}
 		},						
 		</style>
-		
-		<rv-iscroll manual id="rvs" scroll-x is-ready="{{ isReady }}" iscroll-snap=".slide" iscroll-mousewheel="true" style$="margin-left : -2px; width : calc([[ width ]]); height : calc([[ height ]])">
+
+		<div id="waitingContainer" style$="margin-left : -2px; width : calc([[ width ]]); height : calc([[ height ]])">
+			<paper-spinner active="[[ isWaiting ]]"></paper-spinner>
+		</div>
+		<rv-iscroll manual invisible$="[[isWaiting]]" id="rvs" scroll-x is-ready="{{ isReady }}" iscroll-snap=".slide" iscroll-mousewheel="true" 
+			style$="margin-left : -2px; width : calc([[ width ]]); height : calc([[ height ]])">
 			<div class="scroller" style$="height : calc([[ height ]])">
 				<template is="dom-repeat" items="[[ images ]]">
 					<div class="slide" data="[[ item ]]" style$="[[ _slideSizingStyle ]]">
@@ -132,6 +145,8 @@
 			
 			// slider is attached
 			isAttached : { type : Boolean, value : false, notify : true },
+			
+			isWaiting : { type : Boolean, value : false, notify : true },
 			
 			// scroller is ready
 			isReady : { type : Boolean, value : false, notify : true, observer : "_scrollerReadyChanged" },
@@ -269,13 +284,7 @@
 
 		_pageChangedFromBinding : function(n, o)
 		{
-			if(this.disabled) 
-				return;
-			
-			if(!this.$.rvs.iscroll || !this.$.rvs.iscroll.pages.length || (!n && n != 0))
-				return;
-
-			this.goToPage(this.currentPage, 0);
+			this.goToPage(this.currentPage);
 		},
 		
 		_pageChangedFromScroller : function(n, o)
@@ -289,8 +298,22 @@
 		goToPage : function(n) {
 			if(n < 0)
 				return;
+				
+			if(this.disabled || !this.images.length) 
+				return;
+			
+			if(!this.$.rvs.iscroll || !this.$.rvs.iscroll.pages.length || (!n && n != 0))
+			{
+				this.set("isWaiting", true);
+				this.cancelAsync(this.__waitingForIScroll);
+				this.__waitingForIScroll = this.async(this._pageChangedFromBinding, 200); // waiting for iscroll to be ready
+				return 
+			}
 			//this.debounce("goToPage", function() {
-			this.$.rvs.iscroll.goToPage(n, 0)
+			this.$.rvs.iscroll.goToPage(n, 0, this.isWaiting ? 0 : undefined)
+
+			this.set("isWaiting", false);
+				
 			//}, 30);
 		},
 	
