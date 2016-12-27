@@ -230,7 +230,6 @@
 			closeFullScreen : function() {
 				var fsd = this.$$('#fullScreenDialog');
 				fsd && fsd.close();
-				this._unbindArrowKeyListeners();
 			},
 			
 			_fullScreenClosed : function() {
@@ -278,11 +277,13 @@
 			
 			_bindArrowKeyListeners : function() {
 				this.__dialogConfig.listeners = {
-					keydown : document.addEventListener('keydown', this._keyPressed.bind(this))
+					keydown : this._keydown.bind(this)
 				};
+				
+				document.addEventListener('keydown', this.__dialogConfig.listeners.keydown);
 			},
 			
-			_keyPressed : function(e) {
+			_keydown : function(e) {
 				if(e.which == 37)
 					this.prev();
 				else
