@@ -19,12 +19,12 @@
 			}
 
 			.slide {
-				margin-left : 2px;
-				margin-right : 6px;
+				margin-right : 2px;
 			}
 			
 			.slide-frame-border:not([no-border]) {
-				border : 6px solid #56646f;
+				border : var(--slide-frame-border, solid #56646f);
+				border-width : var(--slide-frame-border-width, 6px);
 				border-radius : 9px;
 				background : white;
 				margin-left : 3px;
@@ -38,7 +38,7 @@
 			
 			.slide-frame .image-container
 			{
-				height : calc(100% - 3em);
+				/*height : calc(100% - 3em);*/
 				width : 100%;
 			}
 
@@ -76,10 +76,11 @@
 				width : calc(100% - 1px);
 				display : none;
 			}
-			.caption-wrapper .show-caption {
+			.caption-wrapper.show-caption {
 				background-color : #f2f2f2;
+				display : block;
 			}
-			.keep-caption-space { 
+			.caption-wrapper.keep-caption-space { 
 				display : block;
 			}
 		},						
@@ -93,12 +94,12 @@
 							<div class="image-container" data="[[ item ]]" on-click="_imgClick">
 								<ir-image-sizer
 									width="[[ _imageContainerWidth(item,width,height) ]]" 
-									height="[[ _imageContainerHeight(item,width,height) ]]" 
+									height="[[ _imageContainerHeight(item,width,height,keepCaptionsSpace) ]]" 
 									
 									src="[[ item.src ]]" 
 								></ir-image-sizer>
 							</div>
-							<div class="caption-wrapper [[ _captionClass(item) ]]" style$="max-width : calc([[ _imageContainerWidth(item,width,height) ]])">
+							<div class$="caption-wrapper [[ _captionClass(item) ]]" style$="max-width : calc([[ _imageContainerWidth(item,width,height) ]])">
 								<div class="caption">
 									[[ item.caption ]]
 								</div>
@@ -203,7 +204,7 @@
 			var res = 	"(" + 
 							this.height + 
 							(!this.noCaptions && (item.caption || this.keepCaptionsSpace) ? " - 2.7em" : "") +
-							(this.noBorder ? "" : " - 30px") +
+							" - " + this._borderWidth() +
 						")"; // caption and border
 		
 			return res;
@@ -213,9 +214,16 @@
 		_imageContainerWidth : function(includeBorder) {
 			var res =  	"(" + 
 							(this.slidesPerView <= 1 ? this.width : this.width + " / " + this.slidesPerView) + 
-							(this.noBorder || includeBorder === true ? " - 6px" : " - 30px") + 
+							" - " + this._borderWidth() +
 						")";
 			return res;
+		},
+		
+		_borderWidth : function() {
+			if(this.noBorder)    // || includeBorder === true " - 2px" : " - 30px")
+				return "0px";
+				
+			return "(2 * " + (this.getComputedStyleValue("--slide-frame-border-width") || "6px") + ")";
 		},
 		
 		_scrollerReadyChanged : function() {
@@ -226,10 +234,10 @@
 			
 			var p = this.currentPage;
 			
-			this.set("currentPage", -1);
+			//this.set("currentPage", -1);
 			
-			if(this.currentPage >= 0)
-				this.$.rvs.iscroll.goToPage(p, 0)
+			//if(this.currentPage >= 0)
+			//	this.$.rvs.iscroll.goToPage(p, 0)
 			
 			this._currentPageChanged();
 			

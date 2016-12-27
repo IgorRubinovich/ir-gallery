@@ -209,12 +209,9 @@
 			openDialog : function(e) {
 				if((e.detail.data.img.naturalHeight <= e.detail.target.actualHeight) && (e.detail.data.img.naturalWidth <= e.detail.target.actualWidth))
 					return
-
-				this._lazyConfigDialog();
 				
 				this.set('fullScreen', true);
 				
-
 				this.async(function() {					
 					this.$$("#fullScreenDialog").open();
 					
@@ -248,7 +245,7 @@
 			},
 			
 			
-			_lazyConfigDialog : function() {
+			_configDialog : function() {
 				var dg = this.$$("#dialogGallery"), cc, zc;
 				
 				// one time
@@ -340,6 +337,7 @@
 			},
 			attached : function() {
 				this._getImages();
+				this._configDialog();
 			},
 			
 			_getImagesAtDomPath : function() {

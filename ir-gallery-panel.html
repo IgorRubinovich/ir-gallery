@@ -11,6 +11,7 @@
 		}
 		
 		#wrapper {
+			background : lightgrey;
 			@apply(--layout-vertical);
 			@apply(--layout-center);
 			@apply(--layout-around-justified);
@@ -26,6 +27,7 @@
 			@apply(--layout-around-justified);
 			width : 100%;
 			background : white;
+			height : var(--ir-gallery-buttons-height, 40px);
 		}
 	</style>
 	<template>
@@ -120,13 +122,13 @@
 				scrollerReady : { type : Boolean, value : false, notify : true },
 				thumbnailsReady : { type : Boolean, value : false, notify : true },
 
-				isReadyToDisplay : { type : Boolean, value : false, computed : "_isReadyToDisplay(images.length,width,height,isAttached)", notify : true },
+				isReadyToDisplay : { type : Boolean, value : false, computed : "_isReadyToDisplay(images.*,width,height,isAttached)", notify : true },
 			
 			
-				_thumbnailsHidden : { type : Boolean, value : false, computed : "__thumbnailsHidden(images.length,thumbnailsHidden)" },
+				_thumbnailsHidden : { type : Boolean, value : false, computed : "__thumbnailsHidden(images.*,thumbnailsHidden)" },
 				thumbnailsHidden : { type : Boolean, value : false, notify : true }
 			},
-			observers : ["_updateSize(images.length,width,height,isAttached,isReadyToDisplay,slidesPerView,_thumbnailsHidden)"],
+			observers : ["_updateSize(images.*,width,height,isAttached,isReadyToDisplay,slidesPerView,_thumbnailsHidden)"],
 
 			__thumbnailsHidden : function() {
 				return this.images.length <= 1 || this.thumbnailsHidden;
@@ -142,8 +144,8 @@
 				if(!(this.isAttached && this.isReadyToDisplay)) // && this.scrollerReady && this.thumbnailsReady))
 					return;
 
-				var br = this.$$("#buttons").getBoundingClientRect();
-				console.log("br:", br.height, br.width, this.images.length);
+				var bh = this.getComputedStyleValue("--ir-gallery-buttons-height") || "40px";
+				
 				
 				this.set("sizingStyle", "height : calc(" + this.height + "); " + 
 										"width : calc(" + 
@@ -151,7 +153,7 @@
 										" - 0px);");
 
 				this.set("slidesHeight", "(" + this.height + " * " + (this._thumbnailsHidden ? 1 : .75) + ")"); // using calc expressions without calc itself (is added when expression is final)
-				this.set("thumbnailsHeight", this.images.length > 1 ? "(" + this.height + " * .25" + ") - " + br.height + "px" : 0);
+				this.set("thumbnailsHeight", this.images.length > 1 ? "(" + this.height + " * .25" + ") - " + bh : 0);
 				
 				this.refresh();
 			},
