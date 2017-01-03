@@ -237,13 +237,30 @@
 			},
 			
 			_fullScreenClosed : function() {
-				document.body.style.overflow = this._bodyOverflow;
+				//document.body.style.overflow = this._bodyOverflow;
+				this._restoreScrollbars();
 				this._unbindArrowKeyListeners();
 			},
 			
+			_disableScrollbars : function() {
+				var p = Polymer.dom(this).parentNode;
+				this._modifiedScrollbars = [];
+				while(p) {
+					this._modifiedScrollbars.push({ el : p, overflow : p.style.overflow })
+					p.style.overflow = 'hidden';
+					p = Polymer.dom(p).parentNode;
+				};
+			},
+			_restoreScrollbars : function() {
+				this._modifiedScrollbars.forEach(function(o) {
+					o.el.style.overflow = o.overflow;
+				});
+			}
 			_fullScreenOpened : function() {
-				this._bodyOverflow = document.body.style.overflow;
-				document.body.style.overflow = 'hidden';
+				//this._bodyOverflow = document.body.style.overflow;
+				//document.body.style.overflow = 'hidden';
+				
+				this._disableScrollbars();
 				this._bindArrowKeyListeners();
 				if(!this.currentPage)
 					this.goToPage(0);
