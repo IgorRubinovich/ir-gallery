@@ -118,7 +118,8 @@
 		<!--template is="dom-if" if="[[ fullScreen ]]"-->
 			<paper-dialog 
 				x-entry-animation="scale-up-animation" 
-              exit-animation="fade-out-animation" id="fullScreenDialog" on-iron-overlay-closed="_fullScreenClosed" on-iron-overlay-opened="_fullScreenOpened">
+				exit-animation="fade-out-animation" id="fullScreenDialog" on-iron-overlay-closed="_fullScreenClosed" on-iron-overlay-opened="_fullScreenOpened">
+				
 				<ir-gallery-panel
 					id="dialogGallery"
 					current-page="{{ currentPage }}"
@@ -153,6 +154,8 @@
 	
 	
 	(function() {
+		var irGalleryShared = {};
+	
 		"use sctrict";
 		Polymer({
 			is : "ir-gallery",
@@ -235,24 +238,19 @@
 				var fsd = this.$$('#fullScreenDialog');
 				fsd && fsd.close();
 			},
-			
-			_fullScreenClosed : function() {
-				//document.body.style.overflow = this._bodyOverflow;
-				this._restoreScrollbars();
-				this._unbindArrowKeyListeners();
+
+			_disableScrollbars : function(e) {
+				var p = Polymer.dom(this).parentNode, modified;
+				modified = e.detail._modifiedScrollbars = [];
+				Polymer.dom(e).path.forEach(function(el) {
+					if(!el.style)
+						return;
+					modified.push({ el : el, overflow : el.style.overflow })
+					el.style.overflow = 'hidden';
+				}.bind(this));
 			},
-			
-			_disableScrollbars : function() {
-				var p = Polymer.dom(this).parentNode;
-				this._modifiedScrollbars = [];
-				while(p) {
-					this._modifiedScrollbars.push({ el : p, overflow : p.style.overflow })
-					p.style.overflow = 'hidden';
-					p = Polymer.dom(p).parentNode;
-				};
-			},
-			_restoreScrollbars : function() {
-				this._modifiedScrollbars.forEach(function(o) {
+			_restoreScrollbars : function(e) {
+				e.detail._modifiedScrollbars.forEach(function(o) {
 					o.el.style.overflow = o.overflow;
 				});
 			},
@@ -261,13 +259,22 @@
 				//this._bodyOverflow = document.body.style.overflow;
 				//document.body.style.overflow = 'hidden';
 				
-				this._disableScrollbars();
+				//this._disableScrollbars();
 				this._bindArrowKeyListeners();
 				if(!this.currentPage)
 					this.goToPage(0);
 				this._dialogPageChanged()
+				
+				this.fire('ir-gallery-full-screen-opened', this)
 			},
 			
+			_fullScreenClosed : function() {
+				//document.body.style.overflow = this._bodyOverflow;
+				//this._restoreScrollbars();
+				this._unbindArrowKeyListeners();
+				this.fire('ir-gallery-full-screen-closed', this)
+			},
+						
 			
 			_configDialog : function() {
 				var dg = this.$$("#dialogGallery"), cc, zc;
@@ -298,6 +305,11 @@
 			_unbindArrowKeyListeners : function() {
 				document.removeEventListener('keydown', this.__dialogConfig.listeners.keydown);
 				this.__dialogConfig.listeners.keydown = null;
+			},
+			
+			_bindFullScreenChangeListener : function() {
+				document.addEventListener('ir-gallery-full-screen-opened', this._disableScrollbars)
+				document.addEventListener('ir-gallery-full-screen-closed', this._restoreScrollbars)
 			},
 			
 			_bindArrowKeyListeners : function() {
@@ -377,6 +389,9 @@
 			attached : function() {
 				this._getImages();
 				this._configDialog();
+				
+				if(!irGalleryShared.fullScreenChangeListener) 
+					irGalleryShared.fullScreenChangeListener = this._bindFullScreenChangeListener();
 			},
 			
 			_getImagesAtDomPath : function() {
