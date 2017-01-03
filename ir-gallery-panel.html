@@ -44,6 +44,7 @@
 				current-target="{{ selectedSlide }}"
 				
 				keep-captions-space
+				no-captions="[[ noCaptions ]]"
 				
 				images="[[ images ]]"
 				
@@ -111,6 +112,7 @@
 				height : { type : String, /* value : "400px",  */ notify : true },
 				
 				// keep captions space when there are no captions, ignored if noCaptions is true
+				noCaptions : { type : Boolean, notify : true },
 				keepCaptionsSpace : { type : Boolean, value : true, notify : true },
 			
 				slidesPerView : { type : Number, value : 1, notify : true },

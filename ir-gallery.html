@@ -99,7 +99,7 @@
 		<template is="dom-if" if="[[ keepInlineFormat ]]">
 			<content></content>
 		</template>
-		
+
 		<template is="dom-if" if="[[ !keepInlineFormat ]]">
 			<ir-gallery-panel 
 				id="inlineGallery" 
@@ -112,6 +112,8 @@
 				width="[[ width ]]"
 				height="[[ height ]]"
 				thumbnails-hidden="[[ inlineThumbnailsHidden ]]"
+				
+				no-captions="[[ noCaptions ]]"
 			></ir-gallery-panel>
 		</template>
 		
@@ -128,7 +130,7 @@
 					images="[[ images ]]"
 					width="100vw"
 					height="100vh"
-					keep-captions-space
+					keep-captions-space="[[ !noCaptions ]]"
 					thumbnails-hidden="[[ fullScreenThumbnailsHidden ]]"
 				>
 				</ir-gallery-panel>
@@ -192,7 +194,9 @@
 				fullScreen : { type : Boolean, value : false },
 				isZooming : { type : Boolean, value : false },
 			
-				keepInlineFormat : { type : Boolean, value : false }
+				keepInlineFormat : { type : Boolean, value : false },
+				
+				noCaptions : { type : Boolean, value : false }
 			},
 			observers : ["_updateSize(width,height,slidesPerView,images.*)"],
 			
