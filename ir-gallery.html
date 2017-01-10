@@ -441,7 +441,14 @@
 
 						this.push("images", imgData);
 						
-						img.addEventListener('click', this._inlineContentClick.bind(this, imgData)); // only useful when not using the inline mode		
+						// only useful when not using the inline mode
+						img.addEventListener('load', function(ev) { 
+							if(!this._isDiminished(ev.target, Polymer.dom(ev.target).parentNode))
+								return;
+
+							img.addEventListener('click', this._inlineContentClick.bind(this, imgData)); 							
+							ev.target.style.cursor = "pointer";
+						}.bind(this) )
 					}.bind(this));
 			},
 			
