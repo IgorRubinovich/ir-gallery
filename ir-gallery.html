@@ -441,20 +441,26 @@
 
 						this.push("images", imgData);
 						
-						// only useful when not using the inline mode
-						img.addEventListener('load', function(ev) { 
-							if(!this._isDiminished(ev.target, Polymer.dom(ev.target).parentNode))
-								return;
+						// only useful when using the inline mode
+						if(img.complete && img.naturalWidth)
+							this._inlineImageLoaded(imgData, { target : imgData.img });
+						else
+							imgData.img.addEventListener('load', this._inlineImageLoaded.bind(this, imgData));
 
-							img.addEventListener('click', this._inlineContentClick.bind(this, imgData)); 							
-							ev.target.style.cursor = "pointer";
-						}.bind(this) )
 					}.bind(this));
 			},
 			
+			_inlineImageLoaded : function(imgData, ev) {
+				var cont = Polymer.dom(imgData.img).parentNode;
+				if(!cont || !this._isDiminished(imgData.img, cont))
+					return;
+				ev.target.addEventListener('click', this._inlineContentClick.bind(this, imgData, cont)); 							
+				ev.target.style.cursor = "pointer";
+			},
+			
 			/* Process clicks on images located outside this element's shadow dom (either when using keep-inline-format or images-dom-path) */
-			_inlineContentClick : function(imgData, e) {
-				this.openDialog({ detail : { data : imgData, target : imgData.img }});
+			_inlineContentClick : function(imgData, cont, e) {
+				this.openDialog({ detail : { data : imgData, target : cont } });
 				if(this.clickPreventDefault)
 					e.preventDefault();
 				this.goToPage(imgData.index);
