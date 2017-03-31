@@ -99,7 +99,7 @@
 			style$="margin-left : -2px; width : calc([[ width ]]); height : calc([[ height ]])">
 			<div class="scroller" style$="height : calc([[ height ]])">
 				<template is="dom-repeat" items="[[ images ]]">
-					<div class="slide" data="[[ item ]]" style$="[[ _slideSizingStyle ]]">
+					<div class="slide slide-backdrop" data="[[ item ]]" style$="[[ _slideSizingStyle ]]" on-click="_slideBackdropClick">
 						<div class$="slide-frame [[ _slideFrameBorderClass ]]" no-captions$="[[noCaptions]]" no-border$="[[noBorder]]" data="[[ item ]]" on-click="_slideClick">
 							<div class="image-container" data="[[ item ]]" style="[[ imageContainerStyle ]]" on-click="_imgClick">
 								<ir-image-sizer
@@ -189,6 +189,11 @@
 
 		_imgClick : function(e) {
 			this.fire('slider-image-click', { data : e.currentTarget.data, target : Polymer.dom(e.currentTarget).children[0] });
+		},
+
+		_slideBackdropClick : function(e) {
+			if(e.target.classList && /slide-backdrop/.test(e.target.className))
+				this.fire('slider-slide-backdrop-click', { data : e.currentTarget.data, target : Polymer.dom(e.currentTarget).querySelector('ir-image-sizer') });
 		},
 
 		_slideClick : function(e) {

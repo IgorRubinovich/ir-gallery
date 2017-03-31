@@ -127,6 +127,7 @@
 					current-page="{{ currentPage }}"
 					selected-slide="{{ currentDialogTarget }}"
 					x-on-slide-click="zoom"
+					on-slider-slide-backdrop-click="closeFullScreen"
 					images="[[ images ]]"
 					width="100vw"
 					height="100vh"
@@ -247,7 +248,7 @@
 				var p = Polymer.dom(this).parentNode, modified;
 				modified = e.detail._modifiedScrollbars = [];
 				Polymer.dom(e).path.forEach(function(el) {
-					if(!el.style)
+					if(!el.style || el == document.body || el == document.documentElement)
 						return;
 					modified.push({ el : el, overflow : el.style.overflow })
 					el.style.overflow = 'hidden';
