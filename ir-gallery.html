@@ -225,14 +225,21 @@
 				
 				this.set('fullScreen', true);
 				
-				this.async(function() {					
-					this.$$("#fullScreenDialog").open();
+				this.async(function() {
+					var fsd = this.$$("#fullScreenDialog");
 					
+					if(!fsd.openedAtLeastOnce)
+						fsd.style.visibility = 'hidden';
+					fsd.openedAtLeastOnce = true;
+					
+					fsd.open();
+
 					this.async(function() {
 						var dg = this.$$("#dialogGallery");						
 						
 						dg.refresh();
 						this.async(function() {
+							fsd.style.visibility = 'visible';
 							dg.goToPage(this.currentPage);
 						}, 200);
 					}, 200);
