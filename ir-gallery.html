@@ -133,6 +133,7 @@
 					height="100vh"
 					keep-captions-space="[[ !noCaptions ]]"
 					thumbnails-hidden="[[ fullScreenThumbnailsHidden ]]"
+					large-buttons
 				>
 				</ir-gallery-panel>
 				<div id="close-container" style="background-color : rgba(255,255,255,.5); border-radius : 24px; position : absolute; right : 0; bottom : 0;">
@@ -173,8 +174,8 @@
 				demo : { type : Boolean, value : true, notify : true },
 
 				sizingStyle : { type : String, value : "", notify : true },
-				width : { type : String, value : "400px", notify : true },
-				height : { type : String, value : "400px", notify : true },
+				width : { type : String, /*value : "400px", */ notify : true },
+				height : { type : String, /*value : "400px", */ notify : true },
 
 				fullScreenThumbnailsHidden : { type : Boolean, value : false },
 				inlineThumbnailsHidden : { type : Boolean, value : false },
@@ -386,6 +387,7 @@
 			_isReadyToDisplay : function() {
 				return this.images.length && this.width && this.height
 			},
+			
 			_updateSize : function() {
 				this.set("sizingStyle", "height : " + this.height + "; width : " + (this.slidesPerView <= 1 ? this.width : Units.divide(this.width, this.slidesPerView)) + ";");
 				
@@ -404,6 +406,40 @@
 				
 				if(!irGalleryShared.fullScreenChangeListener) 
 					irGalleryShared.fullScreenChangeListener = this._bindFullScreenChangeListener();
+			
+				window.addEventListener('resize', this._resize.bind(this));
+				this._resize();
+			},
+			
+			_resize : function() {
+				this.cancelDebouncer("resizing");
+				this.debounce("resizing", function() {
+					var el, h, w;
+					
+					if(!this._originalDimensions)
+					{
+						h = parseInt(this.height);
+						w = parseInt(this.width); 
+						this._originalDimensions = { w : w, h : h }
+					}
+					else
+					{
+						h = this._originalDimensions.h
+						w = this._originalDimensions.w
+					}
+					
+					h = h ? Math.min(window.innerHeight, h) : window.innerHeight;
+					w = w ? Math.min(window.innerWidth, w) : window.innerWidth;
+					
+					for(el = this.offsetParent; el; el = el.offsetParent)
+					{
+						h = el.clientHeight > 0 ? Math.min(h, el.clientHeight) : h;
+						w = el.clientWidth > 0 ? Math.min(w, el.clientWidth) : w;
+					}
+					h = Math.max(h, w);
+					this.set("height", h + "px");
+					this.set("width", w + "px");
+				}, 200);
 			},
 			
 			_getImagesAtDomPath : function() {

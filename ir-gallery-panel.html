@@ -22,11 +22,17 @@
 		#buttons {
 			@apply(--layout-horizontal);
 			@apply(--layout-center);
-			@apply(--layout-around-justified);
-			width : 100%;
-			background : white;
-			height : var(--ir-gallery-buttons-height, 40px);
+			@apply(--layout-justified);
+			width : 98%;
+			x_background : white;
+			height : var(--ir-gallery-buttons-height, 80px);
 		}
+		[large-buttons] [next], 
+		[large-buttons] [prev] 
+		{ position : absolute; top : 30vh; width : 10vh; height : 10vh; }
+		
+		[large-buttons] [prev] { left : 6px; }
+		[large-buttons] [next] { right : 21px; }
 	</style>
 	<template>
 		<template hidden$="[[ isReadyToDisplay ]]">
@@ -56,9 +62,9 @@
 			</ir-gallery-slider>
 			
 			
-			<div id="buttons" hidden$="[[ _thumbnailsHidden ]]">
-				<paper-icon-button icon="chevron-left" on-click="prev"></paper-icon-button>
-				<paper-icon-button icon="chevron-right" on-click="next"></paper-icon-button>
+			<div id="buttons" hidden$="[[ _thumbnailsHidden ]]" large-buttons$="[[ largeButtons ]]">
+				<paper-icon-button prev icon="chevron-left" on-click="prev"></paper-icon-button>
+				<paper-icon-button next icon="chevron-right" on-click="next"></paper-icon-button>
 			</div>
 
 			<!-- Thumbnails slider -->
@@ -128,7 +134,9 @@
 			
 			
 				_thumbnailsHidden : { type : Boolean, value : false, computed : "__thumbnailsHidden(images.*,thumbnailsHidden)" },
-				thumbnailsHidden : { type : Boolean, value : false, notify : true }
+				thumbnailsHidden : { type : Boolean, value : false, notify : true },
+
+				largeButtons : { type : Boolean, value : false, notify : true }
 			},
 			observers : ["_updateSize(images.*,width,height,isAttached,isReadyToDisplay,slidesPerView,_thumbnailsHidden)"],
 
