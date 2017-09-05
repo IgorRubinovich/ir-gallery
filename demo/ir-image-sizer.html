@@ -1,0 +1,135 @@
+<!-- 
+	Fits images into the given dimentions without stretching smaller images.
+	
+	The background cover/contain options are good when the image is bigger than
+	its container at least in one dimension.
+	
+	When the image can fit entirely, both options will stretch it, albeit in different manners.
+	The img tag is no good either since for images wider but shorter than the container will get stretched when setting auto.
+	
+	It would be nice to have a third background-size option, e.g. 'fit' which would:
+		- Proportionally fit a background image into its element if it's bigger on either or both dimensions
+		- Leave the image as is if it can fit into the element entirely
+	
+	While css gets there at version x, this component can do the job now.
+
+	Both img and background may be tweaked to produce the desired result if we know the image size.
+	This component is using the background approach, but both ways should be equivalent.
+	
+	
+	
+-->
+
+<dom-module id="ir-image-sizer">
+	<style>
+		:host {
+		}
+		
+		:host > *
+		{
+			box-sizing : border-box;
+		}
+
+		img {
+			max-width : 100%;
+			max-height : 100%;
+		}
+		#view {
+			background-size : auto;
+			background-position : center;
+			background-repeat : no-repeat;
+			xbackground-color : yellow;
+		}
+	</style>
+	<template>
+		<div id="view" style$="[[ _constructedStyle ]]">
+		</div>
+		<img id="loader" hidden src="[[ src ]]">
+	</template>
+	<script>
+		Polymer({
+			is : "ir-image-sizer",
+			properties : {
+				src : { type : String, value : "", notify : true, observer : "_srcChanged" },
+				width : { type : String, notify : true },
+				actualWidth : { type : String, value : "", notify : true },
+				height : { type : String, notify : true },
+				actualHeight : { type : String, value : "", notify : true },
+				imageLoaded : { type : Boolean, value : false, notify : true },
+				_constructedStyle : { type : String, value : "", notify : true },
+			},
+			observers: ['_update(src,width,height)','_setSizing(width,height,imageLoaded)'],
+			attached : function(){
+				
+				/*var r = Polymer.dom(this).parentNode.getBoundingClientRect()
+				this.$.view.style.width = r.width + "px";
+				this.$.view.style.height = r.height + "px";*/
+			},
+			_imageLoaded : function(img) {
+				this.set('imageLoaded', true)
+			},
+			_setSizing : function() {
+				var bs = "auto", natural = {}, res = {}, box;
+
+				box = this.$.view.getBoundingClientRect();
+				
+				if(!box.width || !box.height)
+					return this.async(this._setSizing, 100) // try again later
+
+				natural = { width : parseFloat(this.$.loader.naturalWidth), height : parseFloat(this.$.loader.naturalHeight) };
+				res = { width : natural.width, height : natural.height };
+				
+				if(natural.width > box.width ||	natural.height > box.height)
+					bs = "contain";
+					
+				if(res.width > box.width) {
+					res.width = box.width;
+					natural.height = res.height = res.height * box.width / natural.width;
+				}
+				
+				if(res.height > box.height)
+				{
+					res.height = box.height;
+					res.width = res.width * box.height / natural.height;
+				}
+				
+				this.async(function() {
+					var w, h;
+					
+					w = Math.floor(res.width);
+					h = Math.floor(res.height);
+					
+					this.set("actualWidth", w)
+					this.set("actualHeight", h)
+
+					this.$.view.style.width = w + "px";
+					this.$.view.style.height = h + "px";
+
+					this.$.view.style.backgroundSize = bs;
+				}, 100);				
+			},
+			
+			_srcChanged : function() {
+				var img = this.$.loader;
+				
+				this.set('imageLoaded', false);
+				
+				if(img.complete && img.naturalWidth)
+					this._imageLoaded.call(this)
+				else
+					img.onload = this._imageLoaded.bind(this); 
+
+				return img;
+			},
+			
+			_update : function() {
+				this.set("_constructedStyle",
+					"width : calc(" + this.width + ");" +
+					"height : calc(" + this.height + ");" + 
+					// "background-image : url(" + this.src + ")" + 
+					"background-image : url(" + this.src + ")" + 
+					";");
+			}
+		})
+	</script>
+</dom-module>
