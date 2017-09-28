@@ -140,7 +140,7 @@
 					<paper-icon-button icon="close" on-tap="closeFullScreen"></paper-icon-button>
 				</div>
 				<div id="zoom-container" style="background-color : rgba(255,255,255,.5); border-radius : 24px; position : absolute; right : 0; top : 0;">
-					<paper-icon-button icon="fullscreen" on-tap="zoom"></paper-icon-button>
+					<paper-icon-button icon="zoom-in" on-tap="zoom"></paper-icon-button>
 				</div>
 			</paper-dialog>
 		<!--/template-->
@@ -150,7 +150,7 @@
 			</div>
 		</paper-dialog>
 		<div hidden$="[[ !isZooming ]]" id="zoom-out-container" class="icon-button">
-			<paper-icon-button icon="fullscreen-exit" on-tap="unzoom"></paper-icon-button>
+			<paper-icon-button icon="zoom-out" on-tap="unzoom"></paper-icon-button>
 		</div>
 	</template>
 
