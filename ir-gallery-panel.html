@@ -1,7 +1,7 @@
 <dom-module id="ir-gallery-panel">
 	
 
-	<style is="custom-style" include="iron-flex iron-flex-alignment">
+	<style is="custom-style" include="iron-flex iron-flex-alignment"></style>
 
 	<style>
 		:host > *
@@ -29,7 +29,14 @@
 		}
 		[large-buttons] [next], 
 		[large-buttons] [prev] 
-		{ position : absolute; top : 30vh; width : 10vh; height : 10vh; }
+		{ 
+			position : absolute; 
+			top : 36vh; 
+			width : 8vh; 
+			height : 8vh;
+			background : rgba(255,255,255,.6);
+			border-radius : 100px;
+		}
 		
 		[large-buttons] [prev] { left : 6px; }
 		[large-buttons] [next] { right : 21px; }
