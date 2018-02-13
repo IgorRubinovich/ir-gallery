@@ -196,15 +196,15 @@
 		goToPage : function(n) {
 			console.log(this.id + " going to page ", n);
 
-			if(!this.offsetHeight)
-				return;
+			//if(!this.offsetHeight)
+			//	return;
 			
 			this.cancelDebouncer('goToPage');
 			
 			if(typeof n == 'undefined')
 				return;
 			
-			//this.debounce('goToPage', function() {
+			this.debounce('goToPage', function() {
 				if(this.disabled || !this.images.length) 
 					return;
 				
@@ -231,7 +231,7 @@
 				this.set("currentPage", n);				
 				
 				this.set("isWaiting", false);
-			//}, 100);
+			}, 100);
 				
 			//}, 30);
 		},

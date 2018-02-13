@@ -85,7 +85,8 @@
 				
 				this.set('fullScreen', true);
 				
-				this.async(function() {
+				this.cancelDebouncer('waitingForDialog');
+				this.debounce('waitingForDialog', function() {
 					var fsd = this.$$("#fullScreenDialog");
 					
 					if(!fsd.openedAtLeastOnce)
@@ -366,7 +367,7 @@
 				this.openDialog({ detail : { data : imgData, target : cont } });
 				if(this.clickPreventDefault)
 					e.preventDefault();
-				this.debounce(function() {
+				this.debounce('contentClick', function() {
 					this.goToPage(imgData.index);
 				}, 200);
 			}
