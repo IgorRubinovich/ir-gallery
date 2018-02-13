@@ -26,20 +26,29 @@
 			width : 98%;
 			x_background : white;
 			height : var(--ir-gallery-buttons-height, 80px);
+			position : absolute; 
+			height : 0;
+			x-width : 100%;
 		}
-		[large-buttons] [next], 
-		[large-buttons] [prev] 
+		#buttons:not([large-buttons]) {
+			x-bottom : 16%;
+			z-index : 100;
+		}
+		#buttons[large-buttons] [next], 
+		#buttons[large-buttons] [prev] 
 		{ 
 			position : absolute; 
-			top : 36vh; 
+			x-top : 36vh; 
 			width : 8vh; 
 			height : 8vh;
 			background : rgba(255,255,255,.6);
 			border-radius : 100px;
 		}
 		
-		[large-buttons] [prev] { left : 6px; }
-		[large-buttons] [next] { right : 21px; }
+		#buttons[large-buttons] [prev] { left : 6px; }
+		#buttons[large-buttons] [next] { right : 21px; }
+		
+		#thumbnails { --image-container-padding-width : 3px; }
 	</style>
 	<template>
 		<template hidden$="[[ isReadyToDisplay ]]">
@@ -65,10 +74,11 @@
 				no-border="[[ noBorder ]]"
 
 				on-slider-image-click="_slideClick"
+				
+				actual-size="{{ scrollerActualSize }}"
+
 			>
 			</ir-gallery-slider>
-			
-			
 			<div id="buttons" hidden$="[[ _thumbnailsHidden ]]" large-buttons$="[[ largeButtons ]]">
 				<paper-icon-button prev icon="chevron-left" on-tap="prev"></paper-icon-button>
 				<paper-icon-button next icon="chevron-right" on-tap="next"></paper-icon-button>
@@ -86,6 +96,8 @@
 				no-captions
 				no-border
 				
+				no-page-change-on-scroll
+				
 				hidden$="[[ _thumbnailsHidden ]]"
 				disabled="[[ _thumbnailsHidden ]]"
 				
@@ -98,6 +110,11 @@
 				image-container-style="cursor : pointer"
 				
 				no-border=[[ noBorder ]]
+				
+				sizing="cover"
+				
+				actual-size="{{ thumbnailsActualSize }}"
+				
 			></ir-gallery-slider>
 		</div>
 	</template>
@@ -143,7 +160,9 @@
 				_thumbnailsHidden : { type : Boolean, value : false, computed : "__thumbnailsHidden(images.*,thumbnailsHidden)" },
 				thumbnailsHidden : { type : Boolean, value : false, notify : true },
 
-				largeButtons : { type : Boolean, value : false, notify : true }
+				largeButtons : { type : Boolean, value : false, notify : true },
+				scrollerActualSize : { type : Object, notify : true },
+				thumbnailsActualSize : { type : Object, notify : true }
 			},
 			observers : ["_updateSize(images.*,width,height,isAttached,isReadyToDisplay,slidesPerView,_thumbnailsHidden)"],
 
@@ -161,17 +180,23 @@
 				if(!(this.isAttached && this.isReadyToDisplay)) // && this.scrollerReady && this.thumbnailsReady))
 					return;
 
-				var bh = this.getComputedStyleValue("--ir-gallery-buttons-height") || "40px";
+				var bh = this.getComputedStyleValue("--ir-gallery-buttons-height") || "0px";
 				
+				var h = this.height;
+				var w = (this._thumbnailsHidden ? this.width : Units.divide(this.width, this.slidesPerView)) + " - 0px";
 				
-				this.set("sizingStyle", "height : calc(" + this.height + "); " + 
-										"width : calc(" + 
-											(this._thumbnailsHidden ? this.width : Units.divide(this.width, this.slidesPerView)) + 
-										" - 0px);");
+				this.set("sizingStyle", "height : calc(" +  + "); " + 
+										"width : calc(" + w + ");");
 
-				this.set("slidesHeight", "(" + this.height + " * " + (this._thumbnailsHidden ? 1 : .75) + ")"); // using calc expressions without calc itself (is added when expression is final)
-				this.set("thumbnailsHeight", this.images.length > 1 ? "(" + this.height + " * .25" + ") - " + bh : 0);
+				this.set("slidesHeight", "(" + this.height + " * " + (this._thumbnailsHidden ? 1 : .85) + ")"); // using calc expressions without calc itself (is added when expression is final)
+				this.set("thumbnailsHeight", this.images.length > 1 ? "(" + this.height + " * .15" + ") - " + bh : 0);
 				
+				//this.set("buttonsBottomDistance", this.slidesHeight / 2 + "px");
+				if(!this.largeButtons)
+				{
+					this.$.buttons.style.top = "calc( " + this.height + " * .925 )";
+					this.$.buttons.style.width = "calc( " + w + " * .925 )";
+				}
 				this.refresh();
 			},
 			refresh : function() {
@@ -219,6 +244,7 @@
 				if(noDebounce)
 					return this.set("currentPage", n);
 				
+				this.cancelDebouncer("goToPage");
 				this.debounce("goToPage", function() {
 					this.set("currentPage", n);
 					this.notifyPath("currentPage");

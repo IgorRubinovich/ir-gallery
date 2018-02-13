@@ -41,9 +41,25 @@
 			
 				keepInlineFormat : { type : Boolean, value : false },
 				
-				noCaptions : { type : Boolean, value : false }
+				noCaptions : { type : Boolean, value : false },
+				
+				inlineScrollerActualSize : { type : Object, value : null, observer : "_inlineActualSizeChanged" },
+				inlineThumbnailsActualSize : { type : Object, value : null, observer : "_inlineActualSizeChanged" }
 			},
 			observers : ["_updateSize(width,height,slidesPerView,images.*)"],
+			
+			_inlineActualSizeChanged : function() {
+				if(!this.get("inlineScrollerActualSize.height")) return;
+				
+				var s = this.get("inlineScrollerActualSize.height"),
+					t = this.get("inlineThumbnailsActualSize.height") || 0;
+				
+				var g = this.$$('#inlineGallery');
+				g.style.position = "relative";
+				g.style.left = 0;
+				g.style.top = "calc( (" + (s + t) + "px" + " - " + (this.height) + ") / 2)";
+				g.style.width = this.width;
+			},
 			
 			// zoom
 			zoom : function(e) {
@@ -81,11 +97,11 @@
 					this.async(function() {
 						var dg = this.$$("#dialogGallery");						
 						
-						dg.refresh();
+						fsd.style.visibility = 'visible';
 						this.async(function() {
-							fsd.style.visibility = 'visible';
+							dg.refresh();
 							dg.goToPage(this.currentPage);
-						}, 200);
+						}, 100);
 					}, 200);
 					//this.$.dialogGallery.refresh();
 				})
@@ -350,7 +366,9 @@
 				this.openDialog({ detail : { data : imgData, target : cont } });
 				if(this.clickPreventDefault)
 					e.preventDefault();
-				this.goToPage(imgData.index);
+				this.debounce(function() {
+					this.goToPage(imgData.index);
+				}, 200);
 			}
 		});
 		

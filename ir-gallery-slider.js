@@ -43,7 +43,12 @@
 			_slideFrameBorderClass : { type : String, value : "slide-frame-border", notify : true, computed : "_slideFrameBorder(noBorder)" },
 			_slideSizingStyle : { type : String, value : "", notify : true },
 			_imageSizingStyle : { type : String, value : "", notify : true },
-			_imageContainerSizingStyle : { type : String, value : "", notify : true }
+			_imageContainerSizingStyle : { type : String, value : "", notify : true },
+			sizing : { type : String, value : "contain" },
+			
+			actualSize  : { type : Object, value : function() { return {} }, notify : true },
+			
+			noPageChangeOnScroll : { type : Boolean, value : false }
 		},
 		
 		observers : [
@@ -53,12 +58,23 @@
 		
 		refresh : function() {
 			if(!this.$.rvs)
-				this.async(this.refresh, 500); // try again later
+				this.async(this.refresh, 100); // try again later
 			
 			this.debounce("refresh", function() {
 				this.updateStyles();
 				this.$.rvs.refresh();
-			}, 1000);
+				this.goToPage(this.currentPage);
+			}, 100);
+		},
+		
+		_handleDrag : function(e) {
+			if(e.detail.state != 'end')
+				return;
+
+			if(Math.abs(e.detail.dx) > this.getBoundingClientRect().width / 5)
+			{
+				this.goToPage(this.currentPage + (e.detail.dx < 0 ? 1 : -1));
+			}
 		},
 
 		_imgClick : function(e) {
@@ -80,6 +96,7 @@
 
 		_updateSize : function() {
 			this.set("_slideSizingStyle", "height : calc(" + this.height + "); width : calc(" + this._imageContainerWidth(true) + ")");
+			
 			this.refresh();
 		},
 
@@ -108,48 +125,38 @@
 			var res =  	"(" + 
 							(this.slidesPerView <= 1 ? this.width : this.width + " / " + this.slidesPerView) + 
 							// " - " + this._borderWidth() + " - " + this._imageContainerPaddingWidth() +
-							
+
 							(includeBorder === true ? "" : " - " + this._borderWidth() + " - " + this._imageContainerPaddingWidth()) +
 						")";
 			return res;
 		},
 		
 		_borderWidth : function() {
-			if(this.noBorder)    // || includeBorder === true " - 2px" : " - 30px")
-				return "0px";
+			//if(this.noBorder)    // || includeBorder === true " - 2px" : " - 30px")
+			//	return "0px";
 				
-			return "(2 * " + (this.getComputedStyleValue("--slide-frame-border-width") || "6px") + ")";
+			return this.noBorder ? "0px" : "(2 * " + (this.getComputedStyleValue("--slide-frame-border-width") || "6px") + ")";
 		},
 		
 		_imageContainerPaddingWidth : function() {
-			return "(2 * " + (this.getComputedStyleValue("--image-container-padding-width") || "9px") + ")";
+			return "(2 * " + (this.getComputedStyleValue("--image-container-padding-width") || "0px") + ")";
 		},
 		
 		_scrollerReadyChanged : function() {
 			if(!this.isReady)
 				return;
-			
-			this.$.rvs.iscroll.on('scrollEnd', this._pageChangedFromScroller.bind(this));
-			
+
+			if(!this.noPageChangeOnScroll)
+				this.$.rvs.iscroll.on('scrollEnd', this._pageChangedFromScroller.bind(this));
+
 			var p = this.currentPage;
 			
-			//this.set("currentPage", -1);
-			
-			//if(this.currentPage >= 0)
-			//	this.$.rvs.iscroll.goToPage(p, 0)
-			
-			this._currentPageChanged();
-			
-			//if(this.currentPage >= 0)
-			//	this.async(this.$.rvs.iscroll.goToPage.bind(this.$.rvs.iscroll, this.currentPage, 0), 5000)
-				
+			this._currentPageChanged();				
 		},
 		
 		_currentTarget : function() {
 			var slide;
 
-
-			
 			slide = slide[this.currentPage];
 				
 			return {
@@ -161,41 +168,77 @@
 
 		_pageChangedFromBinding : function(n, o)
 		{
-			this.goToPage(this.currentPage);
+			if(n == o)
+				return;
+
+			this.goToPage(n);
+		},
+		
+		_eq_ : function(a,b) {
+			return a == b;
 		},
 		
 		_pageChangedFromScroller : function(n, o)
 		{
-			if(!this.$.rvs.iscroll)
+			if(!this.$.rvs.iscroll || this.noPageChangeOnScroll)
 				return;
 			
-			this.set("currentPage", this.$.rvs.iscroll.currentPage.pageX);
+			var cpx = this.get("$.rvs.iscroll.currentPage.pageX");
+		
+			//this.cancelDebouncer('fromScroller');
+			this.debounce('fromScroller', function() {
+				this._scrollingSource = false;
+				//this.goToPage(this.$.rvs.iscroll.currentPage.pageX);
+				this.set("currentPage", this.$.rvs.iscroll.currentPage.pageX);
+			}, 100);
 		},
 	
 		goToPage : function(n) {
-			if(n < 0)
-				return;
-				
-			if(this.disabled || !this.images.length) 
+			console.log(this.id + " going to page ", n);
+
+			if(!this.offsetHeight)
 				return;
 			
-			if(!this.$.rvs.iscroll || !this.$.rvs.iscroll.pages.length || (!n && n != 0))
-			{
-				this.set("isWaiting", true);
-				this.cancelAsync(this.__waitingForIScroll);
-				this.__waitingForIScroll = this.async(this._pageChangedFromBinding, 200); // waiting for iscroll to be ready
-				return 
-			}
-			//this.debounce("goToPage", function() {
-			this.$.rvs.iscroll.goToPage(n, 0, this.isWaiting ? 0 : undefined)
+			this.cancelDebouncer('goToPage');
+			
+			if(typeof n == 'undefined')
+				return;
+			
+			//this.debounce('goToPage', function() {
+				if(this.disabled || !this.images.length) 
+					return;
+				
+				if(!this.$.rvs.iscroll || !this.$.rvs.iscroll.pages.length || (!n && n != 0))
+				{
+					this.set("isWaiting", true);
+					this.cancelDebouncer("waitingForIScroll");
+					//this.__waitingForIScroll = this.async(this._pageChangedFromBinding, 100); // waiting for iscroll to be ready
+					this.debounce("waitingForIScroll", this.goToPage.bind(this, n), 200); // waiting for iscroll to be ready
+					return 
+				}
+				
+				var pages = this.images.length;
 
-			this.set("isWaiting", false);
+				if(n < 0)
+					n = pages - ((-n) % pages);
+				
+				n = n % pages;
+				
+				//this.debounce("goToPage", function() {
+				if(n != this.get("$.rvs.iscroll.currentPage.pageX"))
+					this.$.rvs.iscroll.goToPage(n, 0, this.isWaiting ? 0 : undefined)
+
+				this.set("currentPage", n);				
+				
+				this.set("isWaiting", false);
+			//}, 100);
 				
 			//}, 30);
 		},
 	
 		ready : function() {
 			this._injectedElements = [];
+			this._sizes = { all : [] };
 		},
 	
 		attached : function() {
@@ -205,17 +248,24 @@
 		_currentPageChanged : function() {
 			var slide;
 			
+			if(!this.isReady || !this.isAttached) return;
+			
+			if(this._prevCurrentPage == this.currentPage)
+				return;
+
+			this._prevCurrentPage = this.currentPage;
+
 			slide = Polymer.dom(this.root).querySelectorAll(".slide");
 			if(!slide || !slide.length || !(this.currentPage >= 0))
 				return 
-				
+
 			slide = slide[this.currentPage];
 			this.set("currentTarget", {
 				data : slide.data,
 				slide : slide,
 				mediaItem : Polymer.dom(slide).querySelector('ir-image-sizer') // should be extended to other media, e. g. iframe embeds
 			});
-			
+
 			this._injectedElements.forEach(function(inj) {
 				Polymer.dom(Polymer.dom(this.currentTarget.slide).querySelector("." + inj.target)).appendChild(inj.el);
 			}.bind(this));
@@ -246,6 +296,28 @@
 			});
 			
 			return imported;
+		},
+		
+		_actualSizeChanged : function(e) {
+			if(typeof e.model.index == 'undefined' || !e.detail.value || (typeof e.detail.value.width == 'undefined'))
+				return;
+
+			this._sizes.all[e.model.index] = e.detail.value;
+			
+			this.cancelDebouncer('updateActualSize');
+			this.debounce('updateActualSize', function() {
+				var s = {};
+				s.width = Math.max.apply(null, this._sizes.all.map(function(size) { return size.width }));
+				s.height = Math.max.apply(null, this._sizes.all.map(function(size) { return size.height }));
+
+				if(!s.width || !s.height)
+					return;
+
+				if(this._sizes.width == s.width && this._sizes.height == s.height)
+					return;
+
+				this.set("actualSize", s);
+			}, 100);
 		}
 	});
 	
