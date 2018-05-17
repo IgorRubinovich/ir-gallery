@@ -4,11 +4,11 @@
 
 		properties : {
 			// the source images + captions data ({ src : "http://...", caption : "xyz" })
-			images : { type : Array, value : function() { return [] }, notify : true, observer : "refresh" },
+			images : { type : Array, value : function() { return [] }, notify : true },
 			demo : { type : Boolean, value : true, notify : true },
 			
 			// current page/slide number
-			currentPage : { type : Number, notify : true, observer  : "_pageChangedFromBinding" },
+			currentPage : { type : Number, notify : true },
 			
 			// a complex object providing all info on the current slide
 			currentTarget : { type : Object, notify : true },
@@ -53,12 +53,21 @@
 		
 		observers : [
 			'_updateSize(isAttached,noCaptions,noBorder,slidesPerView,width,height,images.*)',
-			'_currentPageChanged(currentPage,isReady,isAttached)'
+			'_imagesChanged(images,isReady,isAttached)',
+			'_currentPageChanged(currentPage,isReady,isAttached)',
+			'_pageChangedFromBinding(currentPage,isReady,isAttached)'
 		],
+		
+		_imagesChanged : function() {
+			if(!this.images || !this.images.length)
+				return 
+			
+			this.refresh();
+		},
 		
 		refresh : function() {
 			if(!this.$.rvs)
-				this.async(this.refresh, 100); // try again later
+				this.debounce("refresh", this.refresh, 100); // try again later
 			
 			this.debounce("refresh", function() {
 				this.updateStyles();
@@ -168,7 +177,10 @@
 
 		_pageChangedFromBinding : function(n, o)
 		{
-			if(n == o)
+			if(!this.isAttached || !this.isReady)
+				return;
+			
+			if(n == this.currentPae)
 				return;
 
 			this.goToPage(n);
@@ -196,8 +208,11 @@
 		goToPage : function(n) {
 			console.log(this.id + " going to page ", n);
 
-			//if(!this.offsetHeight)
-			//	return;
+			if(!this.offsetHeight)
+				return;
+			
+			if(n === this._targetPage)
+				return;
 			
 			this.cancelDebouncer('goToPage');
 			
@@ -225,10 +240,12 @@
 				n = n % pages;
 				
 				//this.debounce("goToPage", function() {
+				const TRANSITION_TIME = 500;
 				if(n != this.get("$.rvs.iscroll.currentPage.pageX"))
-					this.$.rvs.iscroll.goToPage(n, 0, this.isWaiting ? 0 : undefined)
+					this.$.rvs.iscroll.goToPage(n, 0, TRANSITION_TIME, this.isWaiting ? 0 : undefined);
 
-				this.set("currentPage", n);				
+				this.debounce('update-current-page', function() { this.set("currentPage", this._targetPage); }, TRANSITION_TIME);
+				this._targetPage = n;
 				
 				this.set("isWaiting", false);
 			}, 100);
@@ -242,7 +259,7 @@
 		},
 	
 		attached : function() {
-			this.set('attached', true)	
+			this.set('isAttached', true)	
 		},
 		
 		_currentPageChanged : function() {
