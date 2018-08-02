@@ -64,7 +64,7 @@
 				current-page="{{ currentPage }}"
 				current-target="{{ selectedSlide }}"
 				
-				keep-captions-space
+				keep-captions-space="[[ hasCaptions ]]"
 				no-captions="[[ noCaptions ]]"
 				
 				images="[[ images ]]"
@@ -164,8 +164,12 @@
 				scrollerActualSize : { type : Object, notify : true },
 				thumbnailsActualSize : { type : Object, notify : true }
 			},
-			observers : ["_updateSize(images.*,width,height,isAttached,isReadyToDisplay,slidesPerView,_thumbnailsHidden)"],
+			observers : ["_updateSize(images.*,width,height,isAttached,isReadyToDisplay,slidesPerView,_thumbnailsHidden)","_updateHasCaptions(images,images..*)"],
 
+			_updateHasCaptions : function() {
+				this.set("hasCaptions", this.images.reduce((r, idata) => r || idata.caption, false));
+			},
+			
 			__thumbnailsHidden : function() {
 				return this.images.length <= 1 || this.thumbnailsHidden;
 			},
