@@ -44,9 +44,11 @@
 				noCaptions : { type : Boolean, value : false },
 				
 				inlineScrollerActualSize : { type : Object, value : null, observer : "_inlineActualSizeChanged" },
-				inlineThumbnailsActualSize : { type : Object, value : null, observer : "_inlineActualSizeChanged" }
+				inlineThumbnailsActualSize : { type : Object, value : null, observer : "_inlineActualSizeChanged" },
+				
+				imagesCsv : { type : String, value : "" } 
 			},
-			observers : ["_updateSize(width,height,slidesPerView,images.*)"],
+			observers : ["_updateSize(width,height,slidesPerView,images.*)","_getImages(imagesCsv,isAttached)"],
 			
 			_inlineActualSizeChanged : function() {
 				if(!this.get("inlineScrollerActualSize.height")) return;
@@ -320,10 +322,40 @@
 						.map(function(img) { return img.parentNode.tagName == 'FIGURE' ? img.parentNode : img });
 			},
 			
+			_makeChildImagesFromCsv : function() {
+				if(!this.imagesCsv)
+					return [];
+				
+				var pt = Polymer.dom(this);
+				[].slice.call(Polymer.dom(this).children).map(c => pt.removeChild(c));
+				
+				this.imagesCsv.split(/,/).forEach(src => {
+					var img = document.createElement('img');
+					img.src = src;
+					Polymer.dom(this).appendChild(img);
+				});
+				
+				Polymer.dom.flush();
+			},
+			
 			_getImages : function() {
 				var sources, idp;
-
-				(this.imagesDomPath ? this._getImagesAtDomPath() : Polymer.dom(this).children)
+				
+				if(this.imagesCsv)
+					// also in future ._makeChildImagesFromObject like { src, title, caption }
+					this._makeChildImagesFromCsv();
+				else
+					if(this.imagesDomPath)
+						sources = this._getImagesAtDomPath();
+					
+				sources = sources || Polymer.dom(this).children;
+				
+				this.set("images", []);
+				this.set("imgData", []);
+				
+				var hasCaptions = false;
+				
+				sources
 					.forEach(function(el, i) {
 						var imgData, fc, img = el, caption = "";
 

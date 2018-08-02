@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+		<link rel="import" href="../../polymer/polymer.html" />
+		<link rel="import" href="../ir-gallery.html"> 
+		<style>
+			* { border : 1px solid lightblue; }
+			hr { background : green; height : 5px; }
+		</style>
+	</head>
+	<body>
+		
+		<h2>will respond to clicks only on images that are bigger then the viewport. Resize the viewport to smaller dimensions to see all images zoom. 
+		<h1>a title</h1>
+		<div>
+			Some text just before the gallery
+			<br><br>
+			and more text
+		</div>
+		<hr>
+		<ir-gallery width="600px" height="600px" images-csv="http://localhost:5000/media/uploads/userspace/100030/comments/image.jpg"></ir-gallery>
+		<ir-gallery width="600px" height="600px">
+			<img src="http://localhost:5000/media/uploads/userspace/100030/comments/image.jpg">
+			<img src="http://localhost:5000/media/uploads/userspace/100030/comments/image.jpg">
+			<img src="http://localhost:5000/media/uploads/userspace/100030/comments/image.jpg">
+			<img src="http://localhost:5000/media/uploads/userspace/100030/comments/image.jpg">
+		</ir-gallery>
+		<hr>
+		<p>hello</p>
+			<br>
+			and more text
+			<br><br>
+			and more text
+		
+		<!-- <div> -->
+			<!-- <ir-gallery width="300px" height="300px" images-csv="http://localhost:5000/media/uploads/userspace/100030/comments/images%20%282%29.jpg"></ir-gallery> -->
+		<!-- </div> -->
+		<!-- <div>another text</div> -->
+		<!-- </ir-gallery> -->
+		<!-- <hr> -->
+		<!-- <hr> -->
+		<!-- <ir-gallery width="300px" height="300px"> -->
+			<!-- <img src="http://placehold.it/300x200/dd5555/ffffff"> -->
+			<!-- <img src="http://placehold.it/1000x600/dd5555/ffffff"> -->
+			<!-- <img src="http://placehold.it/150x2500/dd5555/ffffff"> -->
+			<!-- <img src="http://placehold.it/150x2500/dd5555/ffffff"> -->
+		<!-- </ir-gallery> -->
+		<!--ir-gallery width="300px" height="300px">
+			<figure>
+				<img src="http://placehold.it/150x2500/dd5555/ffffff">
+				<figcaption>A very tall image (150x2500)</figcaption>
+			</figure>
+			<figure>
+				<img src="http://placehold.it/150x2500/dd5555/ffffff">
+			</figure>
+		</ir-gallery-->
+
+	</body>
+</html>

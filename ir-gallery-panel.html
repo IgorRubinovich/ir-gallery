@@ -185,7 +185,7 @@
 				var h = this.height;
 				var w = (this._thumbnailsHidden ? this.width : Units.divide(this.width, this.slidesPerView)) + " - 0px";
 				
-				this.set("sizingStyle", "height : calc(" +  + "); " + 
+				this.set("sizingStyle", "height : calc(" + h + "); " + 
 										"width : calc(" + w + ");");
 
 				this.set("slidesHeight", "(" + this.height + " * " + (this._thumbnailsHidden ? 1 : .85) + ")"); // using calc expressions without calc itself (is added when expression is final)
