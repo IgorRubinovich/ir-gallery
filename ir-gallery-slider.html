@@ -100,7 +100,7 @@
 		</div>
 		<rv-iscroll manual invisible$="[[isWaiting]]" id="rvs" scroll-x is-ready="{{ isReady }}" iscroll-snap=".slide" iscroll-mousewheel="true" iscroll-click="true" 
 			style$="margin-left : -2px; width : calc([[ width ]]); height : calc([[ height ]])">
-			<div class="scroller" style$="height : calc([[ height ]])" on-track="_handleDrag">
+			<div class="scroller" style$="height : [[ height ]]" on-track="_handleDrag">
 				<template is="dom-repeat" items="[[ images ]]">
 					<div class="slide slide-backdrop" data="[[ item ]]" style$="[[ _slideSizingStyle ]]" on-tap="_slideBackdropClick" current-page$="[[ _eq_(currentPage,index) ]]">
 						<div class$="slide-frame [[ _slideFrameBorderClass ]]" no-captions$="[[noCaptions]]" no-border$="[[noBorder]]" data="[[ item ]]" on-tap="_slideClick" on-actual-width-changed="">

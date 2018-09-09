@@ -53,13 +53,16 @@
 			_inlineActualSizeChanged : function() {
 				if(!this.get("inlineScrollerActualSize.height")) return;
 				
-				var s = this.get("inlineScrollerActualSize.height"),
-					t = this.get("inlineThumbnailsActualSize.height") || 0;
+				var sh = this.get("inlineScrollerActualSize.height"),
+					th = this.get("inlineThumbnailsActualSize.height") || 0;
 				
 				var g = this.$$('#inlineGallery');
+				
+				this.style.height = (sh + th) + "px";
+				
 				g.style.position = "relative";
 				g.style.left = 0;
-				g.style.top = "calc( (" + (s + t) + "px" + " - " + (this.height) + ") / 2)";
+				//g.style.top = "calc( (" + (s + t) + "px" + " - " + (this.height) + ") / 2)";
 				g.style.width = this.width;
 			},
 			
@@ -118,15 +121,45 @@
 				var p = Polymer.dom(this).parentNode, modified;
 				modified = e.detail._modifiedScrollbars = [];
 				Polymer.dom(e).path.forEach(function(el) {
-					if(!el.style || el == document.body || el == document.documentElement)
+					if(!el.style || el == document.documentElement)
 						return;
-					modified.push({ el : el, overflow : el.style.overflow })
-					el.style.overflow = 'hidden';
+					
+					var memo = { el : el, overflow : el.style.overflow };
+					if(el == document.body)
+					{
+						if(document.innerHeight < document.clientHeight)
+							return;
+						
+						memo.body = {};
+						
+						var pd = function(e) { 
+												e.preventDefault() 
+										};
+						el = el.addEventListener('wheel', pd);
+						
+						memo.body.pd = pd;
+						
+						//copyProps(el.style, memo.body, ['position','overflowY','width']);
+						
+						// var st = el.style;
+						// //st.position = 'fixed';
+						// st.overflowY = 'hidden';
+						// st.width = '100%';
+						// st.marginBottom = "1px";
+						//el.style.paddingLeft =
+					}
+					
+					
+					modified.push(memo)
+					//el.style.overflow = 'hidden';
 				}.bind(this));
 			},
 			_restoreScrollbars : function(e) {
-				e.detail._modifiedScrollbars.forEach(function(o) {
-					o.el.style.overflow = o.overflow;
+				e.detail._modifiedScrollbars.forEach(function(memo) {
+					memo.el.style.overflow = memo.overflow;
+					if(memo.body)
+						memo.el.removeEventListener('wheel', memo.body.pd);
+						//copyProps(memo.body, memo.el.style, ['position','overflowY','width']);
 				});
 			},
 
@@ -328,6 +361,8 @@
 				
 				var pt = Polymer.dom(this);
 				[].slice.call(Polymer.dom(this).children).map(c => pt.removeChild(c));
+
+				Polymer.dom.flush();
 				
 				this.imagesCsv.split(/,/).forEach(src => {
 					var img = document.createElement('img');
@@ -335,11 +370,15 @@
 					Polymer.dom(this).appendChild(img);
 				});
 				
-				Polymer.dom.flush();
 			},
 			
 			_getImages : function() {
 				var sources, idp;
+				
+				this.goToPage(0);
+
+				this.set("images", []);
+				this.set("imgData", []);
 				
 				if(this.imagesCsv)
 					// also in future ._makeChildImagesFromObject like { src, title, caption }
@@ -350,40 +389,39 @@
 					
 				sources = sources || Polymer.dom(this).children;
 				
-				this.set("images", []);
-				this.set("imgData", []);
-				
-				var hasCaptions = false;
-				
-				sources
-					.forEach(function(el, i) {
-						var imgData, fc, img = el, caption = "";
+				this.debounce('update', function() {
+					var hasCaptions = false;
+					
+					sources
+						.forEach(function(el, i) {
+							var imgData, fc, img = el, caption = "";
 
-						if(el.tagName == 'FIGURE')
-						{
-							img = Polymer.dom(el).querySelector('img');
-							fc = Polymer.dom(el).querySelector('figcaption');
-							caption = fc && fc.textContent;
-						}
-						if(!img)
-							return;
+							if(el.tagName == 'FIGURE')
+							{
+								img = Polymer.dom(el).querySelector('img');
+								fc = Polymer.dom(el).querySelector('figcaption');
+								caption = fc && fc.textContent;
+							}
+							if(!img)
+								return;
+								
+							imgData = {
+								img : img,
+								src : img.src,
+								caption : caption,
+								index : i
+							}
+
+							this.push("images", imgData);
 							
-						imgData = {
-							img : img,
-							src : img.src,
-							caption : caption,
-							index : i
-						}
+							// only useful when using the inline mode
+							if(img.complete && img.naturalWidth)
+								this._inlineImageLoaded(imgData, { target : imgData.img });
+							else
+								imgData.img.addEventListener('load', this._inlineImageLoaded.bind(this, imgData));
 
-						this.push("images", imgData);
-						
-						// only useful when using the inline mode
-						if(img.complete && img.naturalWidth)
-							this._inlineImageLoaded(imgData, { target : imgData.img });
-						else
-							imgData.img.addEventListener('load', this._inlineImageLoaded.bind(this, imgData));
-
-					}.bind(this));
+						}.bind(this));
+				}, 30);
 			},
 			
 			_inlineImageLoaded : function(imgData, ev) {
@@ -410,5 +448,8 @@
 			multiply : function(v, factor) { return (parseFloat(v) * factor) + Units.getUnits(v) }, 
 			divide : function(v, factor) { return (parseFloat(v) / factor) + Units.getUnits(v) } 
 		}
+		
+		function copyProps(src, tgt, propsArr) { propsArr.forEach(function(p) { tgt[p] = src[p]; }) }
+
 	})()
 	

@@ -25,22 +25,17 @@
 			@apply(--layout-justified);
 			width : 98%;
 			x_background : white;
-			height : var(--ir-gallery-buttons-height, 80px);
-			position : absolute; 
+			xheight : var(--ir-gallery-buttons-height, 0px);
 			height : 0;
 			x-width : 100%;
+			position : absolute;
 		}
 		#buttons:not([large-buttons]) {
-			x-bottom : 16%;
 			z-index : 100;
 		}
 		#buttons[large-buttons] [next], 
 		#buttons[large-buttons] [prev] 
 		{ 
-			position : absolute; 
-			x-top : 36vh; 
-			width : 8vh; 
-			height : 8vh;
 			background : rgba(255,255,255,.6);
 			border-radius : 100px;
 		}
@@ -54,7 +49,7 @@
 		<template hidden$="[[ isReadyToDisplay ]]">
 			No images or unknown dimensions
 		</template>
-		<div id="wrapper" style$="[[ sizingStyle ]]">
+		<div id="wrapper" style$="[[ sizingStyle ]]" on-mouseover="_mouseOver" on-mouseout="_mouseOut">
 			<!-- Main view slider -->
 			
 			<ir-gallery-slider
@@ -76,10 +71,11 @@
 				on-slider-image-click="_slideClick"
 				
 				actual-size="{{ scrollerActualSize }}"
-
+				
+				shrink-height="[[ shrinkHeight ]]"
 			>
 			</ir-gallery-slider>
-			<div id="buttons" hidden$="[[ _thumbnailsHidden ]]" large-buttons$="[[ largeButtons ]]">
+			<div id="buttons" hidden$="[[ _buttonsHidden ]]" large-buttons$="[[ largeButtons ]]">
 				<paper-icon-button prev icon="chevron-left" on-tap="prev"></paper-icon-button>
 				<paper-icon-button next icon="chevron-right" on-tap="next"></paper-icon-button>
 			</div>
@@ -98,7 +94,7 @@
 				
 				no-page-change-on-scroll
 				
-				hidden$="[[ _thumbnailsHidden ]]"
+				hidden="[[ _thumbnailsHidden ]]"
 				disabled="[[ _thumbnailsHidden ]]"
 				
 				slides-per-view="5"
@@ -157,28 +153,66 @@
 				isReadyToDisplay : { type : Boolean, value : false, computed : "_isReadyToDisplay(images.*,width,height,isAttached)", notify : true },
 			
 			
-				_thumbnailsHidden : { type : Boolean, value : false, computed : "__thumbnailsHidden(images.*,thumbnailsHidden)" },
-				thumbnailsHidden : { type : Boolean, value : false, notify : true },
-
+				_thumbnailsHidden : { type : Boolean, value : false, computed : "__thumbnailsHidden(images,images.*,isAttached)" },
+				_hover : { type : Boolean, value : false, observer : "_hoverChanged" },
+				_buttonsHidden : { type : Boolean, value : false },
+				
 				largeButtons : { type : Boolean, value : false, notify : true },
 				scrollerActualSize : { type : Object, notify : true },
-				thumbnailsActualSize : { type : Object, notify : true }
+				thumbnailsActualSize : { type : Object, notify : true },
+				shrinkHeight : { type : Boolean, value : false }
 			},
-			observers : ["_updateSize(images.*,width,height,isAttached,isReadyToDisplay,slidesPerView,_thumbnailsHidden)","_updateHasCaptions(images,images..*)"],
+			observers : ["_updateSize(images.*,width,height,isAttached,isReadyToDisplay,slidesPerView,_thumbnailsHidden,shrinkHeight)","_updateActualSize(thumbnailsActualSize,scrollerActualSize)","_updateHasCaptions(images,images..*)"],
 
+			_mouseOver : function() {
+				this.set("_hover", true);
+			},
+			
+			_mouseOut : function() {
+				this.set("_hover", false);
+			},
+			
+			_hoverChanged : function() {
+				this.set("_buttonsHidden", (this.get('images.length') <= 1 || !this._hover));
+				//this.$.buttons.style.width = this.get("actualSize.width") + "px";
+			},
+			
 			_updateHasCaptions : function() {
 				this.set("hasCaptions", this.images.reduce((r, idata) => r || idata.caption, false));
 			},
 			
 			__thumbnailsHidden : function() {
-				return this.images.length <= 1 || this.thumbnailsHidden;
+				return this.images.length <= 1;
 			},
 
 			_isReadyToDisplay : function() {
-				return this.images.length && this.width && this.height && this.images.length && this.isAttached; // && this.get("$.scroller") && this.get("$.thumbnails");
+				return this.images.length && this.width && this.height && this.isAttached; // && this.get("$.scroller") && this.get("$.thumbnails");
 			},
 			_updateSize : function() {
 				this.debounce("updateSize", this._updateSizeDebounced, 250);
+			},
+			_updateActualSize : function() {
+				var get = function(p) { return this.get(p) || 0 }.bind(this);
+				var  
+					h = get("scrollerActualSize.height") + get("thumbnailsActualSize.height"),
+					w = get("scrollerActualSize.width") + get("thumbnailsActualSize.width");
+					
+				this.set("actualSize", {
+					height : h,
+					width : w
+				})
+				var buttonsHeight = this.$.buttons.getBoundingClientRect();
+				
+				if(this.shrinkHeight)
+					this.$.wrapper.style.height = h + "px";
+
+				if(!this.largeButtons)
+				{
+					this.$.buttons.style.top = ((get("scrollerActualSize.height") - buttonsHeight.height)/3) + "px"; //"calc( " + h + " * .925 )";
+					this.$.buttons.style.width = w + "px"; //"calc( " + w + " * .925 )";
+				}
+
+				//this._updateSize();
 			},
 			_updateSizeDebounced : function() {
 				if(!(this.isAttached && this.isReadyToDisplay)) // && this.scrollerReady && this.thumbnailsReady))
@@ -189,18 +223,15 @@
 				var h = this.height;
 				var w = (this._thumbnailsHidden ? this.width : Units.divide(this.width, this.slidesPerView)) + " - 0px";
 				
-				this.set("sizingStyle", "height : calc(" + h + "); " + 
-										"width : calc(" + w + ");");
+				//this.set("sizingStyle", ["height : ", 
+				// this.set("sizingStyle", "height : calc(" + h + "); " + 
+				//						"width : calc(" + w + ");");
 
-				this.set("slidesHeight", "(" + this.height + " * " + (this._thumbnailsHidden ? 1 : .85) + ")"); // using calc expressions without calc itself (is added when expression is final)
-				this.set("thumbnailsHeight", this.images.length > 1 ? "(" + this.height + " * .15" + ") - " + bh : 0);
-				
+				this.set("slidesHeight", "calc(" + this.height + " * " + (this._thumbnailsHidden && !this.shrinkHeight ? 1 : .85) + ")"); // using calc expressions without calc itself (is added when expression is final)
+				this.set("thumbnailsHeight", this.images.length > 1 ? "calc(" + this.height + " * .15" + ") - " + bh : 0);
+				//this.set("actualSize", this.slidesHeight + this.thumbnailsHeight);
 				//this.set("buttonsBottomDistance", this.slidesHeight / 2 + "px");
-				if(!this.largeButtons)
-				{
-					this.$.buttons.style.top = "calc( " + this.height + " * .925 )";
-					this.$.buttons.style.width = "calc( " + w + " * .925 )";
-				}
+
 				this.refresh();
 			},
 			refresh : function() {

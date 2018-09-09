@@ -36,15 +36,17 @@
 		}
 		#view {
 			background-size : auto;
-			background-position : center;
+			background-position : center center;
 			background-repeat : no-repeat;
 			xbackground-color : yellow;
 		}
 	</style>
 	<template>
-		<div id="view" style$="[[ _constructedStyle ]]">
-		</div>
-		<img id="loader" hidden src="[[ src ]]">
+		<!-- <resize-aware on-element-size-changed="_updateActualSize"> -->
+			<div id="view" style$="[[ _constructedStyle ]]">
+			</div>
+		<!-- </resize-aware> -->
+			<img id="loader" hidden src="[[ src ]]">
 	</template>
 	<script>
 		Polymer({
@@ -88,6 +90,13 @@
 					portrait : o.width < o.height,
 				}
 			},
+			_updateActualSize : function(e) {
+				this.cancelDebouncer('as');
+				this.debounce('as', function() {
+					this.set("actualSize", e.detail.value)
+					console.log("actualSize", e.detail.value, this)
+				}, 100);
+			},
 			_setSizing : function() {
 				var bs = "auto", natural = {}, res = {}, box;
 
@@ -125,7 +134,9 @@
 					}
 				}
 
-				this.async(function() {
+				// return;
+				
+				this.debounce("setSizing", function() {
 					var w, h;
 					
 					w = Math.floor(res.width);

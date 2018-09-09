@@ -47,12 +47,13 @@
 			sizing : { type : String, value : "contain" },
 			
 			actualSize  : { type : Object, value : function() { return {} }, notify : true },
+			shrinkHeight  : { type : Boolean, value : false },
 			
 			noPageChangeOnScroll : { type : Boolean, value : false }
 		},
 		
 		observers : [
-			'_updateSize(isAttached,noCaptions,noBorder,slidesPerView,width,height,images.*)',
+			'_updateSize(isAttached,noCaptions,noBorder,slidesPerView,width,height,images.*,actualSize)',
 			'_imagesChanged(images,isReady,isAttached)',
 			'_currentPageChanged(currentPage,isReady,isAttached)',
 			'_pageChangedFromBinding(currentPage,isReady,isAttached)'
@@ -71,6 +72,8 @@
 			
 			this.debounce("refresh", function() {
 				this.updateStyles();
+				this.$.rvs.iscroll && this.$.rvs.iscroll.destroy()
+				this.$.rvs.iscroll = null;
 				this.$.rvs.refresh();
 				this.goToPage(this.currentPage);
 			}, 100);
@@ -104,9 +107,14 @@
 		},
 
 		_updateSize : function() {
-			this.set("_slideSizingStyle", "height : calc(" + this.height + "); width : calc(" + this._imageContainerWidth(true) + ")");
-			
+			const br = this.getBoundingClientRect();
+			const ah = Math.min(this.get("actualSize.height"), br.height);
+			const th = ((this.shrinkHeight && ah ? ah + "px" : 0)  || this.height);
+			this.set("_slideSizingStyle", "height : "+ th +"; width : calc(" + this._imageContainerWidth(true) + ")");
+			//this.style.height = th;
+			this.style.overflow = 'hidden';
 			this.refresh();
+			this.$.rvs.style.height = th
 		},
 
 		
@@ -334,6 +342,7 @@
 					return;
 
 				this.set("actualSize", s);
+				console.log(this.id, "actualSize", s);
 			}, 100);
 		}
 	});
