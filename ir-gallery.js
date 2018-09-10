@@ -380,6 +380,9 @@
 				this.set("images", []);
 				this.set("imgData", []);
 				
+				const pt = Polymer.dom(this);
+				[].slice.call(pt.children).forEach(c => pt.removeChild(c))
+				
 				if(this.imagesCsv)
 					// also in future ._makeChildImagesFromObject like { src, title, caption }
 					this._makeChildImagesFromCsv();
