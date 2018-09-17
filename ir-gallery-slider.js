@@ -67,6 +67,8 @@
 		},
 		
 		refresh : function() {
+			if(!this.get("images.length"))
+				return;
 			if(!this.$.rvs)
 				this.debounce("refresh", this.refresh, 100); // try again later
 			
@@ -252,7 +254,7 @@
 				if(n != this.get("$.rvs.iscroll.currentPage.pageX"))
 					this.$.rvs.iscroll.goToPage(n, 0, TRANSITION_TIME, this.isWaiting ? 0 : undefined);
 
-				this.debounce('update-current-page', function() { this.set("currentPage", this._targetPage); }, TRANSITION_TIME);
+				this.debounce('update-current-page', function() { this.set("currentPage", this._targetPage); delete this._targetPage; }, TRANSITION_TIME);
 				this._targetPage = n;
 				
 				this.set("isWaiting", false);

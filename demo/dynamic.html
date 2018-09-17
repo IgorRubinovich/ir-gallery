@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+		<link rel="import" href="../../polymer/polymer.html" />
+		<link rel="import" href="../ir-gallery.html"> 
+		<style>
+			x { border : 1px solid lightblue; }
+			hr { background : green; height : 5px; }
+			button { border-radius : 50px; outline : 0; height : 50px; width : 50px }
+			.center { text-align  : center; }
+		</style>
+	</head>
+	<body>
+		<div class="center">
+			<button id="remove">-</button>
+			<button id="shuffle">shuffle</button>
+			<button id="add">+</button>
+		</div>
+		<hr>
+		<!-- <ir-gallery width="600px" height="600px" images-csv="http://placehold.it/150x2500/dd5555/ffffff"></ir-gallery> -->
+		<ir-gallery width="600px" height="600px">
+			<img src="http://placehold.it/150x2500/dd5555/ffffff">
+		</ir-gallery>
+		<div id="list"></div>
+		<script>
+			function g() {
+				return document.querySelector('ir-gallery');
+			}
+			function current() {
+				return g().imagesCsv.split(/,/).filter(Boolean);
+			}
+			function randInt(min,max) {
+				return Math.floor(Math.random() * (max-min) + min);
+			}
+			function randHex() {
+				const n = randInt(0, 15);
+				 return n < 10 ? n : "ABCDEF"[n - 10];
+			}
+			function randColor() {
+				var c = [], i = 6;
+				while(i--) c.push(randHex());
+				
+				return c.join('');
+			}
+			function removeImage() {
+				const c = current();
+				c.pop();
+				g().imagesCsv = c.join(/,/);
+				out();
+			}
+			function addImage() {
+				const c = current();
+				c.push('http://placehold.it/' + randInt(10,1000) + "x" + randInt(10,1000) + '/' + randColor() + '/' + randColor() + '/');
+				g().imagesCsv = c.join(',');
+				out();
+			}
+			function shuffle() {
+				const c = current();
+				var i = -1;
+				while(++i < c.length) {
+					const r = randInt(i, c.length);
+					const t = c[i];
+					c[i] = c[r];
+					c[r] = t;
+				}
+
+				g().imagesCsv = c.join(',');
+				out();
+			}
+			function out() {
+				document.querySelector('#list').innerText = "<ir-gallery images-csv='" + current().join(",") + "'></ir-gallery>";
+			}
+			document.querySelector("#add").addEventListener('click', addImage);
+			document.querySelector("#remove").addEventListener('click', removeImage);
+			document.querySelector("#shuffle").addEventListener('click', shuffle);
+			add();
+		</script>
+
+	</body>
+</html>

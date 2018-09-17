@@ -105,7 +105,10 @@
 						
 						fsd.style.visibility = 'visible';
 						this.async(function() {
+							//if(this._refreshOnOpen)
 							dg.refresh();
+							
+							this._refreshOnOpen = false;
 							dg.goToPage(this.currentPage);
 						}, 100);
 					}, 200);
@@ -379,10 +382,11 @@
 
 				this.set("images", []);
 				this.set("imgData", []);
-				
+								
 				const pt = Polymer.dom(this);
-				[].slice.call(pt.children).forEach(c => pt.removeChild(c))
-				
+				if(this.imagesCsv || this.imagesDomPath)
+					[].slice.call(pt.children).forEach(c => pt.removeChild(c))
+
 				if(this.imagesCsv)
 					// also in future ._makeChildImagesFromObject like { src, title, caption }
 					this._makeChildImagesFromCsv();
@@ -392,6 +396,8 @@
 					
 				sources = sources || Polymer.dom(this).children;
 				
+				this._refreshOnOpen = true;
+
 				this.debounce('update', function() {
 					var hasCaptions = false;
 					
