@@ -69,6 +69,7 @@
 		refresh : function() {
 			if(!this.get("images.length"))
 				return;
+
 			if(!this.$.rvs)
 				this.debounce("refresh", this.refresh, 100); // try again later
 			

@@ -46,7 +46,7 @@
 				inlineScrollerActualSize : { type : Object, value : null, observer : "_inlineActualSizeChanged" },
 				inlineThumbnailsActualSize : { type : Object, value : null, observer : "_inlineActualSizeChanged" },
 				
-				imagesCsv : { type : String, value : "" } 
+				imagesCsv : { type : String, value : "", observer : "_imagesCsvChanged" }
 			},
 			observers : ["_updateSize(width,height,slidesPerView,images.*)","_getImages(imagesCsv,isAttached)"],
 			
@@ -105,8 +105,8 @@
 						
 						fsd.style.visibility = 'visible';
 						this.async(function() {
-							//if(this._refreshOnOpen)
-							dg.refresh();
+							if(this._refreshOnOpen)
+								dg.refresh();
 							
 							this._refreshOnOpen = false;
 							dg.goToPage(this.currentPage);
@@ -375,6 +375,15 @@
 				
 			},
 			
+			_clearChildImages : function() {
+				const pt = Polymer.dom(this);
+				[].slice.call(pt.children).forEach(c => pt.removeChild(c))
+			},
+			
+			_imagesCsvChanged : function(n, o) {
+				if(o && !n) this._clearChildImages();
+			},
+			
 			_getImages : function() {
 				var sources, idp;
 				
@@ -383,10 +392,9 @@
 				this.set("images", []);
 				this.set("imgData", []);
 								
-				const pt = Polymer.dom(this);
 				if(this.imagesCsv || this.imagesDomPath)
-					[].slice.call(pt.children).forEach(c => pt.removeChild(c))
-
+					this._clearChildImages();
+				
 				if(this.imagesCsv)
 					// also in future ._makeChildImagesFromObject like { src, title, caption }
 					this._makeChildImagesFromCsv();
