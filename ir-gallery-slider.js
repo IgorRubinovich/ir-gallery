@@ -219,8 +219,8 @@
 		goToPage : function(n) {
 			console.log(this.id + " going to page ", n);
 
-			if(!this.offsetHeight)
-				return;
+			// if(!this.offsetHeight)
+			// 	return;
 			
 			if(n === this._targetPage)
 				return;
