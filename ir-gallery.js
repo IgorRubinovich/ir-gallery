@@ -118,6 +118,8 @@
 			closeFullScreen : function() {
 				var fsd = this.$$('#fullScreenDialog');
 				fsd && fsd.close();
+
+				this.set("fullScreen", false);
 			},
 
 			_disableScrollbars : function(e) {
@@ -445,18 +447,60 @@
 				var cont = Polymer.dom(imgData.img).parentNode;
 				if(!cont || !this._isDiminished(imgData.img, cont))
 					return;
-				ev.target.addEventListener(CLICK_EVENT_TYPE, this._inlineContentClick.bind(this, imgData, cont)); 							
+				// CLICK_EVENT_TYPE
+				ev.target.addEventListener(CLICK_EVENT_TYPE, this._inlineContentClick.bind(this, imgData, cont)); 	
+				
+				if(iOS) {
+					// ev.target.addEventListener("mouseup", this._inlineContentClickCancel.bind(this)); 		
+					ev.target.addEventListener("touchend", this._inlineContentClickCancel.bind(this)); 
+					ev.target.addEventListener("touchmove", this._inlineContentClickCancel.bind(this));
+					ev.target.addEventListener("gesturestart", this._inlineContentClickCancel.bind(this)); 		
+				}
+				console.log("added more handlers");
 				ev.target.style.cursor = "pointer";
+			},
+
+			_inlineContentClickCancel : function(e) {
+				// if(e.targetTouches && e.targetTouches.length > 1)
+				if(this.fullScreen)
+					return;
+
+				const elapsed = Date.now() - this.__contentClickStart;
+
+				console.log("Considering cancel", this.__contentClickStart);
+				if(this.__contentClickStart != -1 && elapsed > 400) {
+					e.stopPropagation();
+					return console.log("Not cancelling after " + elapsed);
+				}
+				console.log("cancelling after ", elapsed);
+
+				this.__contentClickStart = -1;
+				this.cancelDebouncer('contentClick');
 			},
 			
 			/* Process clicks on images located outside this element's shadow dom (either when using keep-inline-format or images-dom-path) */
 			_inlineContentClick : function(imgData, cont, e) {
-				this.openDialog({ detail : { data : imgData, target : cont } });
-				if(this.clickPreventDefault)
-					e.preventDefault();
+				this.__contentClickStart = this.__contentClickStart == -1 ? Date.now() : this.__contentClickStart;
 				this.debounce('contentClick', function() {
+					const elapsed = Date.now() - this.__contentClickStart;
+
+					if(this.__contentClickStart == -1)
+						return;
+					
+					this.__contentClickStart = -1;
+
+					console.log(elapsed);
+
+					if(this.clickPreventDefault) {
+						e.preventDefault();
+						e.stopPropagation();
+					}
+
+					this.openDialog({ detail : { data : imgData, target : cont } });
+
+
 					this.goToPage(imgData.index);
-				}, 200);
+				}.bind(this), 500);
 			}
 		});
 		
