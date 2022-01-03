@@ -447,23 +447,9 @@
 				var cont = Polymer.dom(imgData.img).parentNode;
 				if(!cont || !this._isDiminished(imgData.img, cont))
 					return;
-				ev.target.addEventListener(CLICK_EVENT_TYPE, this._inlineContentClick.bind(this, imgData, cont));
-				
-				if(iOS) {
-					// ev.target.addEventListener("mouseup", this._inlineContentClickCancel.bind(this)); 		
-					ev.target.addEventListener("touchend", this._inlineContentClickCancel.bind(this)); 
-					ev.target.addEventListener("touchmove", this._inlineContentClickCancel.bind(this));
-					ev.target.addEventListener("gesturestart", this._inlineContentClickCancel.bind(this)); 		
-				};
-
-				ev.target.addEventListener("click", function(e) { 
-					e.preventDefault();
-					return false;
-				}, false);
-
-				console.log("added more handlers");
-
+				ev.target.addEventListener("click", this._inlineContentClick.bind(this, imgData, cont)); 							
 				ev.target.style.cursor = "pointer";
+				ev.target.setAttribute("onclick", "");
 			},
 
 			_inlineContentClickCancel : function(e) {
