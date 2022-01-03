@@ -192,8 +192,8 @@
 			if(!this.isAttached || !this.isReady)
 				return;
 			
-			if(n == this.currentPae)
-				return;
+			// if(n == this.currentPage)
+			// 	return;
 
 			this.goToPage(n);
 		},
@@ -258,8 +258,8 @@
 				if(n != this.get("$.rvs.iscroll.currentPage.pageX"))
 					this.$.rvs.iscroll.goToPage(n, 0, TRANSITION_TIME, this.isWaiting ? 0 : undefined);
 
-				this.debounce('update-current-page', function() { this.set("currentPage", this._targetPage); delete this._targetPage; }, TRANSITION_TIME);
 				this._targetPage = n;
+				this.debounce('update-current-page', function() { this.set("currentPage", this._targetPage); delete this._targetPage; }, TRANSITION_TIME);
 				
 				this.set("isWaiting", false);
 			}, 100);

@@ -274,7 +274,7 @@
 					return;
 					
 				if(!(this.scrollerReady && this.thumbnailsReady))
-					this.async(this.goToPage.bind(this, n, noDebounce), 300);
+					return this.async(this.goToPage.bind(this, n, noDebounce), 300);
 				
 				if(noDebounce)
 					return this.set("currentPage", n);
