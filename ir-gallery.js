@@ -445,8 +445,9 @@
 				var cont = Polymer.dom(imgData.img).parentNode;
 				if(!cont || !this._isDiminished(imgData.img, cont))
 					return;
-				ev.target.addEventListener(CLICK_EVENT_TYPE, this._inlineContentClick.bind(this, imgData, cont)); 							
+				ev.target.addEventListener("click", this._inlineContentClick.bind(this, imgData, cont)); 							
 				ev.target.style.cursor = "pointer";
+				ev.target.setAttribute("onclick", "");
 			},
 			
 			/* Process clicks on images located outside this element's shadow dom (either when using keep-inline-format or images-dom-path) */
