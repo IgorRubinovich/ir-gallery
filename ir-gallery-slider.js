@@ -71,14 +71,15 @@
 				return;
 
 			if(!this.$.rvs)
-				this.debounce("refresh", this.refresh, 100); // try again later
-			
+				return this.debounce("refresh", this.refresh, 100); // try again later
+
 			this.debounce("refresh", function() {
+				this.__refreshingRvs = true;
+
 				this.updateStyles();
 				this.$.rvs.iscroll && this.$.rvs.iscroll.destroy()
 				this.$.rvs.iscroll = null;
 				this.$.rvs.refresh();
-				this.goToPage(this.currentPage);
 			}, 100);
 		},
 		
@@ -224,11 +225,13 @@
 			
 			if(n === this._targetPage)
 				return;
-			
+
 			this.cancelDebouncer('goToPage');
 			
 			if(typeof n == 'undefined')
 				return;
+			
+			// this._targetPage = n; 
 			
 			this.debounce('goToPage', function() {
 				if(this.disabled || !this.images.length) 

@@ -456,6 +456,11 @@
 					ev.target.addEventListener("gesturestart", this._inlineContentClickCancel.bind(this)); 		
 				};
 
+				ev.target.addEventListener("click", function(e) { 
+					e.preventDefault();
+					return false;
+				}, false);
+
 				console.log("added more handlers");
 
 				ev.target.style.cursor = "pointer";
@@ -478,6 +483,11 @@
 				
 				this.$$("#fullScreenDialog").noCancelOnOutsideClick = true;
 				
+				if(this.clickPreventDefault) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
+
 				this.cancelDebouncer('contentClickStart');
 				this.debounce('contentClickStart', function() {
 					// this.noCancelOnOutsideClick = this._noCancelOnOutsideClick;
