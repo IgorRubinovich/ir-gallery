@@ -191,7 +191,7 @@
 
 		_pageChangedFromBinding : function(n, o)
 		{
-			if(!this.isAttached || !this.isReady)
+			if(!this.isAttached || !this.isReady || !this.isShown)
 				return;
 			
 			// if(n == this.currentPage)
@@ -247,7 +247,6 @@
 					this.cancelDebouncer("waitingForIScroll");
 					//this.__waitingForIScroll = this.async(this._pageChangedFromBinding, 100); // waiting for iscroll to be ready
 					this.debounce("waitingForIScroll", this.goToPage.bind(this, n), 200); // waiting for iscroll to be ready
-					return 
 				}
 				
 				var pages = this.images.length;

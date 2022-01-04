@@ -88,7 +88,6 @@
 				if((e.detail.data.img.naturalHeight <= e.detail.target.actualHeight) && (e.detail.data.img.naturalWidth <= e.detail.target.actualWidth))
 					return
 				
-				this.set('fullScreen', true);
 				
 				this.cancelDebouncer('waitingForDialog');
 				this.debounce('waitingForDialog', function() {
@@ -109,6 +108,8 @@
 								dg.refresh();
 							
 							this._refreshOnOpen = false;
+							this.set('fullScreen', true);
+
 							dg.goToPage(this.currentPage, true);
 						}, 100);
 					}, 200);
@@ -452,50 +453,50 @@
 				ev.target.setAttribute("onclick", "");
 			},
 
-			_inlineContentClickCancel : function(e) {
-				// if(e.targetTouches && e.targetTouches.length > 1)
-				// if(this.fullScreen)
-				// 	return;
+			// _inlineContentClickCancel : function(e) {
+			// 	// if(e.targetTouches && e.targetTouches.length > 1)
+			// 	// if(this.fullScreen)
+			// 	// 	return;
 
-				if(Date.now() - this.__contentClickStart < 400) {
-					this.cancelDebouncer('contentClickStart');
-				}
+			// 	if(Date.now() - this.__contentClickStart < 400) {
+			// 		this.cancelDebouncer('contentClickStart');
+			// 	}
 			
-			},
+			// },
 			
+			/* Process clicks on images located outside this element's shadow dom (either when using keep-inline-format or images-dom-path) */
+			// _inlineContentClick : function(imgData, cont, e) {
+			// 	this.__contentClickStart = Date.now();
+				
+			// 	this.$$("#fullScreenDialog").noCancelOnOutsideClick = true;
+				
+			// 	if(this.clickPreventDefault) {
+			// 		e.preventDefault();
+			// 		e.stopPropagation();
+			// 	}
+
+			// 	this.cancelDebouncer('contentClickStart');
+			// 	this.debounce('contentClickStart', function() {
+			// 		// this.noCancelOnOutsideClick = this._noCancelOnOutsideClick;
+			// 		// this.$$("#fullScreenDialog").noCancelOnOutsideClick = false;
+
+			// 		if(Date.now() - this.__contentClickStart < 400)
+			// 			this._inlineContentClickProcess(imgData, cont, e);
+			// 		else
+			// 			console.log("Not continuing contentClickStart - too late")
+			// 	}, 300)
+			// },
+
 			/* Process clicks on images located outside this element's shadow dom (either when using keep-inline-format or images-dom-path) */
 			_inlineContentClick : function(imgData, cont, e) {
-				this.__contentClickStart = Date.now();
-				
-				this.$$("#fullScreenDialog").noCancelOnOutsideClick = true;
-				
-				if(this.clickPreventDefault) {
-					e.preventDefault();
-					e.stopPropagation();
-				}
-
-				this.cancelDebouncer('contentClickStart');
-				this.debounce('contentClickStart', function() {
-					// this.noCancelOnOutsideClick = this._noCancelOnOutsideClick;
-					// this.$$("#fullScreenDialog").noCancelOnOutsideClick = false;
-
-					if(Date.now() - this.__contentClickStart < 400)
-						this._inlineContentClickProcess(imgData, cont, e);
-					else
-						console.log("Not continuing contentClickStart - too late")
-				}, 300)
-			},
-
-			/* Process clicks on images located outside this element's shadow dom (either when using keep-inline-format or images-dom-path) */
-			_inlineContentClickProcess : function(imgData, cont, e) {
 
 				this.debounce('contentClick', function() {
 					console.log("Opening page " + imgData.index + " from inline event")
 
-					if(this.__contentClickStart == -1)
-						return;
+					// if(this.__contentClickStart == -1)
+					// 	return;
 					
-					this.__contentClickStart = -1;
+					// this.__contentClickStart = -1;
 
 					if(this.clickPreventDefault) {
 						e.preventDefault();

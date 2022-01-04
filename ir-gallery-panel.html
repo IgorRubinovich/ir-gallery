@@ -274,7 +274,7 @@
 			},
 			goToPage : function(n, noDebounce) {
 				//this.currentPage = -1;
-				if(!this.images) // || this.images.length <= 1)
+				if(!this.images || !this.isShown) // || this.images.length <= 1)
 					return;
 					
 				if(!(this.scrollerReady && this.thumbnailsReady))
