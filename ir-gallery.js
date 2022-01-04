@@ -7,6 +7,7 @@
 		Polymer({
 			is : "ir-gallery",
 			properties : {
+				minWidth : { type : Number, value : 0, notify : true }, // will not be activated below this width
 				currentPage : { type : Number, value : 0, notify : true },
 				currentDialogTarget : { type : Object, notify : true, observer : "_dialogPageChanged" },
 				currentInlineTarget : { type : Object, notify : true, observer : "_inlinePageChanged" },
@@ -489,25 +490,34 @@
 
 			/* Process clicks on images located outside this element's shadow dom (either when using keep-inline-format or images-dom-path) */
 			_inlineContentClick : function(imgData, cont, e) {
-
+				this.openDialog({ detail : { data : imgData, target : cont } });
+				if(this.clickPreventDefault)
+					e.preventDefault();
 				this.debounce('contentClick', function() {
-					console.log("Opening page " + imgData.index + " from inline event")
-
-					// if(this.__contentClickStart == -1)
-					// 	return;
-					
-					// this.__contentClickStart = -1;
-
-					if(this.clickPreventDefault) {
-						e.preventDefault();
-						e.stopPropagation();
-					}
-
-					this.openDialog({ detail : { data : imgData, target : cont } });
-
 					this.goToPage(imgData.index);
-				}.bind(this), 500);
+				}, 200);
 			}
+
+			// _inlineContentClick : function(imgData, cont, e) {
+
+			// 	this.debounce('contentClick', function() {
+			// 		console.log("Opening page " + imgData.index + " from inline event")
+
+			// 		// if(this.__contentClickStart == -1)
+			// 		// 	return;
+					
+			// 		// this.__contentClickStart = -1;
+
+			// 		if(this.clickPreventDefault) {
+			// 			e.preventDefault();
+			// 			e.stopPropagation();
+			// 		}
+
+			// 		this.openDialog({ detail : { data : imgData, target : cont } });
+
+			// 		this.goToPage(imgData.index);
+			// 	}.bind(this), 500);
+			// }
 		});
 		
 		var Units = {
