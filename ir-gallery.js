@@ -109,7 +109,7 @@
 								dg.refresh();
 							
 							this._refreshOnOpen = false;
-							dg.goToPage(this.currentPage);
+							dg.goToPage(this.currentPage, true);
 						}, 100);
 					}, 200);
 					//this.$.dialogGallery.refresh();

@@ -18,6 +18,8 @@
 			
 			isWaiting : { type : Boolean, value : false, notify : true },
 			
+			isShown : { type: Boolean, value : false, notify: true },
+
 			// scroller is ready
 			isReady : { type : Boolean, value : false, notify : true, observer : "_scrollerReadyChanged" },
 			
@@ -194,8 +196,9 @@
 			
 			// if(n == this.currentPage)
 			// 	return;
-
-			this.goToPage(n);
+			if(!(n >= 0))
+				return;
+			this.goToPage(n, true);
 		},
 		
 		_eq_ : function(a,b) {
@@ -219,7 +222,8 @@
 	
 		goToPage : function(n) {
 			console.log(this.id + " going to page ", n);
-
+			if(!this.isShown)
+				return;
 			// if(!this.offsetHeight)
 			// 	return;
 			

@@ -106,6 +106,7 @@
 				selected-slide="{{ currentInlineTarget }}"
 				on-slide-click="openDialog"
 				no-border
+				is-shown="{{ fullScreen }}"
 
 				images="[[ images ]]"
 				width="[[ width ]]"
@@ -137,6 +138,7 @@
 					keep-captions-space="[[ !noCaptions ]]"
 					thumbnails-hidden="[[ fullScreenThumbnailsHidden ]]"
 					large-buttons="true"
+					is-shown="{{ fullScreen }}"
 				>
 				</ir-gallery-panel>
 				<div id="close-container" style="background-color : rgba(255,255,255,.5); border-radius : 24px; position : absolute; right : 0; bottom : 0;">

@@ -65,6 +65,7 @@
 				images="[[ images ]]"
 				
 				is-ready="{{ scrollerReady }}"
+				is-shown="{{ isShown }}"
 				
 				no-border="[[ noBorder ]]"
 
@@ -87,6 +88,8 @@
 				height="[[ thumbnailsHeight ]]" 
 				current-page="{{ currentPage }}" 
 				current-target="{{ selectedThumbnail }}" 
+				
+				is-shown="{{ isShown }}"
 
 				images="[[ images ]]"
 				no-captions
@@ -146,7 +149,8 @@
 				thumbnailsHeight : { type : String, /* value : "100px", */ notify : true },
 				
 				isAttached : { type : Boolean, value : false, notify : true },
-				
+				isShown : { type : Boolean, value : false, notify : true },
+
 				scrollerReady : { type : Boolean, value : false, notify : true },
 				thumbnailsReady : { type : Boolean, value : false, notify : true },
 
