@@ -7,7 +7,8 @@
 		Polymer({
 			is : "ir-gallery",
 			properties : {
-				minWidth : { type : Number, value : 0, notify : true }, // will not be activated below this width
+				minWidth : { type : Number, value : 0, notify : true },
+
 				currentPage : { type : Number, value : 0, notify : true },
 				currentDialogTarget : { type : Object, notify : true, observer : "_dialogPageChanged" },
 				currentInlineTarget : { type : Object, notify : true, observer : "_inlinePageChanged" },
@@ -451,19 +452,7 @@
 					return;
 				ev.target.addEventListener("click", this._inlineContentClick.bind(this, imgData, cont)); 							
 				ev.target.style.cursor = "pointer";
-				ev.target.setAttribute("onclick", "");
-			},
-
-			// _inlineContentClickCancel : function(e) {
-			// 	// if(e.targetTouches && e.targetTouches.length > 1)
-			// 	// if(this.fullScreen)
-			// 	// 	return;
-
-			// 	if(Date.now() - this.__contentClickStart < 400) {
-			// 		this.cancelDebouncer('contentClickStart');
-			// 	}
-			
-			// },
+				ev.target.setAttribute("onclick", "");			},
 			
 			/* Process clicks on images located outside this element's shadow dom (either when using keep-inline-format or images-dom-path) */
 			// _inlineContentClick : function(imgData, cont, e) {
@@ -490,6 +479,8 @@
 
 			/* Process clicks on images located outside this element's shadow dom (either when using keep-inline-format or images-dom-path) */
 			_inlineContentClick : function(imgData, cont, e) {
+				if(this.minWidth && (window.innerWidth < this.minWidth))
+					return;
 				this.openDialog({ detail : { data : imgData, target : cont } });
 				if(this.clickPreventDefault)
 					e.preventDefault();
