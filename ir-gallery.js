@@ -7,6 +7,8 @@
 		Polymer({
 			is : "ir-gallery",
 			properties : {
+				minWidth : { type : Number, value : 0, notify : true },
+
 				currentPage : { type : Number, value : 0, notify : true },
 				currentDialogTarget : { type : Object, notify : true, observer : "_dialogPageChanged" },
 				currentInlineTarget : { type : Object, notify : true, observer : "_inlinePageChanged" },
@@ -445,12 +447,14 @@
 				var cont = Polymer.dom(imgData.img).parentNode;
 				if(!cont || !this._isDiminished(imgData.img, cont))
 					return;
-				ev.target.addEventListener(CLICK_EVENT_TYPE, this._inlineContentClick.bind(this, imgData, cont)); 							
+				ev.target.addEventListener("click", this._inlineContentClick.bind(this, imgData, cont)); 							
 				ev.target.style.cursor = "pointer";
-			},
+				ev.target.setAttribute("onclick", "");			},
 			
 			/* Process clicks on images located outside this element's shadow dom (either when using keep-inline-format or images-dom-path) */
 			_inlineContentClick : function(imgData, cont, e) {
+				if(this.minWidth && (window.innerWidth < this.minWidth))
+					return;
 				this.openDialog({ detail : { data : imgData, target : cont } });
 				if(this.clickPreventDefault)
 					e.preventDefault();
